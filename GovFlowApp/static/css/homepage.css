@@ -1,0 +1,457 @@
+/* General Reset */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    display: flex;
+    background-color: #fafafa;
+    min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 250px;
+    min-width: 250px;
+    height: 100vh;
+    background: #ffffff;
+    border-right: 1px solid #dbdbdb;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+/* Logo container */
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 15px;
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    margin-bottom: 5px;
+    width: 100%;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* Logo image */
+.logo img {
+    width: 50px;
+    height: 50px;
+}
+
+/* Logo text */
+.logo span {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #262626;
+    white-space: nowrap;/* prevent line breaks */
+    overflow: hidden;/* hide overflow */
+    text-overflow: ellipsis;/* add ... */
+    max-width: calc(100% - 60px); /* leave space for the logo image */
+}
+
+.logo-link {
+    text-decoration: none;
+    color: inherit; /* Keep the text color same as before */
+    display: block; /* Make the whole area clickable */
+}
+
+
+/* Separator */
+.separator {
+    border: none;
+    border-top: 1px solid #cccccc;
+    margin: 15px 0;
+}
+
+/* Menu */
+.menu {
+    list-style: none;
+    padding: 0;
+}
+
+.menu li {
+    margin-bottom: 8px;
+    border-radius: 8px; /* Optional, keeps spacing for a11y */
+}
+
+/* Make <a> fill the li and handle layout */
+.menu li a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #262626;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+/* Hover effect */
+.menu li a:hover {
+    background-color: #efefef;
+}
+
+/* Active menu item */
+.menu li.active a {
+    font-weight: 750; /* or 700 if you prefer */
+    background-color: #d4edda;
+}
+
+/* Icon inside menu */
+.icon {
+    font-size: 18px;
+    color: #262626; /* black icons */
+}
+
+/* --- Main Content Layout --- */
+.main-content {
+    margin-left: 250px; /* Default desktop margin */
+    flex: 1;
+    padding: 20px;
+    transition: margin-left 0.3s ease;
+}
+
+/* FIX: Class applied by JS for desktop collapsed state - use !important */
+.main-content.sidebar-collapsed-active {
+    margin-left: 70px !important; 
+}
+
+
+
+/* --- Sidebar Collapse Button (at the bottom) --- */
+.sidebar-arrow {
+    margin-top: auto; /* pushes button to bottom */
+    width: 35px;
+    height: 35px;
+    background-color: #007a33; /* DOH green */
+    color: #ffffff;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.3s, background-color 0.3s;
+    align-self: center; /* center horizontally */
+    margin-bottom: 10px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+}
+
+/* Hover effect */
+.sidebar-arrow:hover {
+    background-color: #339966;
+    transform: scale(1.1);
+}
+
+/* --- Sidebar Collapse State Styling --- */
+
+/* Sidebar Collapsed */
+.sidebar.collapsed {
+    width: 70px; 
+    min-width: 70px; 
+    padding: 10px 0; 
+}
+
+/* Logo: only show icon */
+.sidebar.collapsed .logo {
+    justify-content: center; /* Center the icon */
+    padding: 10px 0;
+    width: 100%;
+    background-color: transparent;
+    box-shadow: none;
+}
+
+/* Menu items: only show icons, center them */
+.sidebar.collapsed .menu li a {
+    justify-content: center; /* Center icon inside link */
+    padding: 12px 0;         /* Remove horizontal padding */
+    width: 100%;             /* Full width for hover/click */
+    text-align: center;
+}
+
+/* Hide text labels */
+.sidebar.collapsed .logo span,
+.sidebar.collapsed .menu li a span {
+    display: none !important; 
+}
+
+/* Optional: show tooltip on hover for accessibility */
+.sidebar.collapsed .menu li {
+    position: relative;
+}
+
+.sidebar.collapsed .menu li:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 80px; /* outside the collapsed sidebar */
+    top: 50%;
+    transform: translateY(-50%);
+    background: #333;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+    font-size: 0.9rem;
+    z-index: 999;
+}
+
+
+
+/* --- Main Header/Navbar Styles --- */
+.main-header {
+    background-color: #ffffff;
+    padding: 15px 25px; 
+    border-radius: 12px; 
+    margin-bottom: 20px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1); 
+    display: flex;
+    align-items: center; 
+    justify-content: space-between; 
+    gap: 15px;
+    height: 70px; 
+}
+
+/* New: Header Toggle Button */
+.header-toggle-btn {
+    width: 40px;
+    height: 40px;
+    background-color: #f0f2f5;
+    color: #262626;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    /* Hide by default on large screens */
+    display: none; 
+}
+
+.header-toggle-btn:hover {
+    background-color: #e6e8eb;
+}
+
+/* Search Bar styles */
+.search-bar-container {
+    flex-grow: 1; 
+    max-width: 600px; 
+}
+
+.search-bar {
+    width: 100%;
+    position: relative;
+}
+
+.search-bar input {
+    width: 100%;
+    padding: 10px 15px 10px 40px; 
+    border: none;
+    border-radius: 8px;
+    background-color: #f0f2f5; 
+    font-size: 1rem;
+    color: #555555;
+    transition: background-color 0.3s;
+}
+
+.search-bar input:focus {
+    outline: none;
+    background-color: #e6e8eb;
+}
+
+.search-bar .bi-search {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888888;
+    font-size: 1rem;
+}
+
+/* User Profile & Icons */
+.user-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.user-actions .icon-btn {
+    width: 40px;
+    height: 40px;
+    background: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    color: #6c757d;
+    transition: color 0.2s;
+}
+
+.user-actions .icon-btn:hover {
+    color: #343a40;
+}
+
+.user-actions .icon-btn .bi {
+    font-size: 1.5rem;
+}
+
+/* Badge for notifications */
+.user-actions .icon-btn .badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    height: 8px;
+    width: 8px;
+    padding: 0;
+    border-radius: 50%;
+    background-color: #dc3545; /* Red dot */
+}
+
+.user-actions .profile-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #e9ecef; /* Light gray circle background */
+    border: 1px solid #dee2e6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: #495057;
+    cursor: pointer;
+}
+
+/* --- Responsive adjustments --- */
+
+/* Tablets (max-width: 992px) */
+@media (max-width: 992px) { 
+    .sidebar {
+        width: 200px;
+        min-width: 200px;
+    }
+    .main-content {
+        margin-left: 200px; /* Tablet default margin */
+    }
+    
+    /* FIX: Override tablet margin when collapsed */
+    .main-content.sidebar-collapsed-active {
+        margin-left: 70px; 
+    }
+
+    .main-content.sidebar-collapsed-active .header-toggle-btn {
+        display: flex;
+    }
+    .main-header {
+        padding: 15px;
+    }
+}
+
+/* Small tablets / large phones (max-width: 768px) */
+@media (max-width: 768px) { 
+    .sidebar {
+        position: absolute;
+        left: -250px; /* hidden by default */
+        height: 100%;
+        width: 250px; 
+        min-width: 250px;
+    }
+    .sidebar.active {
+        left: 0; /* slide in */
+    }
+    .main-content {
+        margin-left: 0;
+    }
+    /* FIX: Ensure margin is 0 on mobile/tablet */
+    .main-content.sidebar-collapsed-active {
+        margin-left: 0 !important; 
+    }
+    .main-header {
+        height: auto;
+        flex-direction: row; 
+        align-items: center;
+        gap: 15px;
+    }
+    .search-bar-container {
+        max-width: 100%;
+    }
+    /* Always show header toggle button on mobile/tablet */
+    .header-toggle-btn {
+        display: flex;
+    }
+    /* Hide the desktop collapse button on mobile/tablet */
+    .sidebar-arrow {
+        display: none;
+    }
+}
+
+/* Mobile (max-width: 576px) */
+@media (max-width: 576px) { 
+    .sidebar {
+        width: 100%;
+        left: -100%;
+    }
+    .sidebar.active {
+        left: 0;
+    }
+}
+
+/* Sidebar Footer (Logout + Collapse Arrow) */
+.sidebar-footer {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 10px;
+}
+
+.sidebar.collapsed .logout-btn span {
+    display: none !important;
+}
+
+/* Hide logout in mobile mode like collapse arrow */
+@media (max-width: 768px) {
+    .logout-btn {
+        display: none;
+    }
+}
+
+
+/* Profile dropdown positioning */
+.user-actions {
+    position: relative;
+}
+
+.profile-dropdown {
+    position: absolute;
+    top: 50px; /* adjust based on header height */
+    right: 0;
+    display: none;
+    flex-direction: column;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 8px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+    min-width: 120px;
+    z-index: 1000;
+}
+
+/* Show on hover for desktop */
+@media (hover: hover) {
+    .profile-avatar:hover + .profile-dropdown {
+        display: flex;
+    }
+}

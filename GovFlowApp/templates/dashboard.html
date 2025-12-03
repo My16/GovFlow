@@ -1,0 +1,91 @@
+{% extends 'homepage.html' %}
+{% load static %}
+{% block title %} GovFlowApp - Dashboard {% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+
+<div class="dashboard-content">
+
+    <div class="row summary-cards mb-4">
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="summary-card">
+                <div class="card-text">
+                    <p class="card-label">Total Documents</p>
+                    <h3 class="card-value">1</h3>
+                </div>
+                <div class="card-icon blue-bg">
+                    <i class="bi bi-file-earmark-text-fill"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="summary-card">
+                <div class="card-text">
+                    <p class="card-label">In Progress</p>
+                    <h3 class="card-value">0</h3>
+                </div>
+                <div class="card-icon orange-bg">
+                    <i class="bi bi-clock-fill"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="summary-card">
+                <div class="card-text">
+                    <p class="card-label">Received</p>
+                    <h3 class="card-value">1</h3>
+                </div>
+                <div class="card-icon green-bg">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="summary-card">
+                <div class="card-text">
+                    <p class="card-label">High Priority</p>
+                    <h3 class="card-value">1</h3>
+                </div>
+                <div class="card-icon red-bg">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="recent-documents-section">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="section-title">Recent Documents</h4>
+            <a href="#" class="view-all-link">View All →</a>
+        </div>
+        
+        <div class="document-card">
+            <div class="document-header">
+                <span class="tag high-priority-tag">High Priority</span>
+                <span class="tag received-tag">Received</span>
+            </div>
+            <h5 class="document-title">Q1 Financial Audit</h5>
+            <p class="document-description">Audit of Q1 expenses, travel, and software.</p>
+            <div class="document-meta">
+                <span class="meta-item"><i class="bi bi-clock"></i> Created 12/2/2025</span>
+                <span class="meta-item"><i class="bi bi-geo-alt"></i> Finance</span>
+            </div>
+            <div class="document-actions">
+                <button class="btn btn-sm btn-outline-secondary action-btn"><i class="bi bi-file-earmark-text"></i> Details</button>
+                <button class="btn btn-sm btn-outline-primary action-btn"><i class="bi bi-send-fill"></i></button>
+                <button class="btn btn-sm btn-outline-secondary action-btn"><i class="bi bi-qr-code"></i></button>
+                <button class="btn btn-sm btn-outline-danger action-btn"><i class="bi bi-trash-fill"></i></button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+{% endblock %}

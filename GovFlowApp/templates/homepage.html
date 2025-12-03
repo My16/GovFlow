@@ -1,0 +1,99 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %}GovFlowApp{% endblock %}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+        <link rel="stylesheet" href="{% static 'css/homepage.css' %}">
+    </head>
+
+    <body>
+
+        <div class="sidebar" id="sidebar">
+            <a href="{% url 'homepage' %}" class="logo-link">
+                <div class="logo">
+                    <img src="{% static 'img/mharsmc.png' %}" alt="icon">
+                    <span>GovFlowApp</span>
+                </div>
+            </a>
+
+            <hr class="separator">
+
+            <ul class="menu">
+                <li class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" data-tooltip="Dashboard">
+                    <a href="{% url 'dashboard' %}">
+                        <i class="bi bi-house icon"></i><span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="{% if request.resolver_match.url_name == 'all_documents' %}active{% endif %}" data-tooltip="All Documents">
+                    <a href="{% url 'all_documents' %}">
+                        <i class="bi bi-folder2-open icon"></i><span>All Documents</span>
+                    </a>
+                </li>
+                <li class="{% if request.resolver_match.url_name == 'new_document' %}active{% endif %}" data-tooltip="New Document">
+                    <a href="{% url 'new_document' %}">
+                        <i class="bi bi-file-earmark-plus icon"></i><span>New Document</span>
+                    </a>
+                </li>
+                <li data-tooltip="Receive Document">
+                    <a href="#">
+                        <i class="bi bi-qr-code-scan icon"></i><span>Receive Document</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <button class="sidebar-arrow" id="desktopToggle">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="main-content" id="mainContent">
+            
+            <header class="main-header">
+                
+                <button class="header-toggle-btn" id="headerToggle">
+                    <i class="bi bi-list"></i>
+                </button>
+
+                <div class="search-bar-container">
+                    <div class="search-bar">
+                        <i class="bi bi-search"></i>
+                        <input type="text" placeholder="Search by tracking number, title, or sender...">
+                    </div>
+                </div>
+
+                <div class="user-actions">
+                    <button class="icon-btn">
+                        <i class="bi bi-bell-fill"></i>
+                        <span class="badge"></span>
+                    </button>
+                    
+                    <div class="profile-avatar">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    <div class="profile-dropdown">
+                        <a href= "{% url 'logout' %}" class="btn btn-outline-danger logout-btn">Logout</a>
+                    </div>
+                </div>
+
+            </header>
+
+            <div class="content-body">
+                {% block content %}
+                    
+                {% endblock %}
+            </div>
+        </div>
+
+        
+        <script src="{% static 'js/homepage.js' %}"></script>
+    </body>
+
+</html>

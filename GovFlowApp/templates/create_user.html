@@ -1,0 +1,96 @@
+{% extends 'homepage.html' %}
+{% load static %}
+{% block title %} GovFlowApp - Create User {% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/create_user.css' %}">
+
+<div class="register-document-page-container">
+
+    <!-- Header and Back Link (using the container structure) -->
+    <div class="back-link-container">
+        <!-- Updated the link to use a simple text arrow as requested -->
+        <a href="{% url 'dashboard' %}" class="back-to-dashboard">
+            ← Dashboard
+        </a>
+    </div>
+
+    <div class="register-form-card">
+        
+        <h3>Create New Office User</h3>
+
+        <form method="POST">
+            {% csrf_token %}
+            <!-- Row 1: First Name / Last Name -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    {{ form.first_name.label_tag }}
+                    {{ form.first_name }}
+                </div>
+                <div class="col-md-6">
+                    {{ form.last_name.label_tag }}
+                    {{ form.last_name }}
+                </div>
+            </div>
+
+            <!-- Row 2: Username / Email -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    {{ form.username.label_tag }}
+                    {{ form.username }}
+                </div>
+                <div class="col-md-6">
+                    {{ form.email.label_tag }}
+                    {{ form.email }}
+                </div>
+            </div>
+
+            <!-- Row 3: Department (full width) -->
+            <div class="row mb-3">
+                <div class="col-12">
+                    {{ form.department.label_tag }}
+                    {{ form.department }}
+                </div>
+            </div>
+
+            <!-- Row 4: Password / Confirm Password -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    {{ form.password.label_tag }}
+                    <div class="password-wrapper">
+                        {{ form.password }}
+                        <i class="bi bi-eye toggle-password" data-target="id_password"></i>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    {{ form.confirm_password.label_tag }}
+                    <div class="password-wrapper">
+                        {{ form.confirm_password }}
+                        <i class="bi bi-eye toggle-password" data-target="id_confirm_password"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages from views.py -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert {{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+
+            <!-- Action Buttons - Updated to use outlined buttons and link for Cancel -->
+            <div class="form-actions mt-4">
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-danger cancel-btn">Cancel</a>
+                <button type="submit" class="btn btn-outline-success register-btn"><i class="bi bi-person-plus"></i>  Create User</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="{% static 'js/create_user.js' %}"></script>
+
+{% endblock %}

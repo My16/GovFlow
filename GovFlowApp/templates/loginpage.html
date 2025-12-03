@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+
+{% load static %}
+
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>GovFlow</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="{% static 'css/loginpage.css' %}">
+    </head>
+    <body>
+        <div class="container d-flex justify-content-center align-items-center vh-100">
+            <div class="card login-card p-4 col-md-4">
+                <div class="text-center mb-4">
+                    <img src="{% static 'img/doh_logo.png' %}" alt="DOH Logo" class="gov-logo mb-2">
+                    <img src="{% static 'img/mharsmc.png' %}" alt="MHARSMC Logo" class="gov-logo mb-2">
+                    <h2 class="fw-bold text-dark" style="letter-spacing: 1px;">GovFlowApp</h2>
+                    <p class="text-muted">MHARS Medical Center Document Tracking System</p>
+                </div>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="form-floating-wrapper">
+                        <input type="text" class="form-control-modern" id="username" name="username" placeholder=" " required>
+                        <label class="form-label-modern" for="username">Username</label>
+                    </div>
+
+                    <div class="form-floating-wrapper">
+                        <input type="password" class="form-control-modern" id="password" name="password" placeholder=" " required>
+                        <label class="form-label-modern" for="password">Password</label>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                        <label class="form-check-label" for="remember">Remember Me</label>
+                    </div>
+
+                    <div id="alert-container">
+                        {% if messages %}
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                {% for message in messages %}
+                                    {{ message }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+
+                    <button type="submit" class="btn btn-success w-100">Login</button>
+                </form>
+
+                <p class="text-center text-muted mt-3 mb-0">© {% now "Y" %} Mayor Hilarion A. Ramiro Sr. Medical Center</p>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+        <script>
+            window.addEventListener('DOMContentLoaded', () => {
+                const alertContainer = document.getElementById('alert-container');
+                const alertNode = alertContainer.querySelector('.alert');
+
+                if (alertNode) {
+                    setTimeout(() => {
+                        const bsAlert = bootstrap.Alert.getOrCreateInstance(alertNode);
+                        bsAlert.close();
+
+                        // Remove alert from DOM after fade out to collapse space
+                        alertNode.addEventListener('closed.bs.alert', () => {
+                            alertNode.remove();
+                        });
+                    }, 3000); // 3 seconds
+                }
+            });
+        </script>
+
+    </body>
+</html>

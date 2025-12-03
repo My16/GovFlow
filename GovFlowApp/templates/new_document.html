@@ -1,0 +1,58 @@
+{% extends 'homepage.html' %}
+{% load static %}
+{% block title %} GovFlowApp - Register New Document {% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/new_document.css' %}">
+
+<div class="register-document-page-container">
+    <div class="back-link-container">
+        <a href="{% url 'dashboard' %}" class="back-to-dashboard">
+            ← Back to Dashboard
+        </a>
+    </div>
+
+    <div class="register-form-card">
+        <h3>Register New Document</h3>
+        
+        <form action="#" method="POST" class="document-registration-form">
+            {% csrf_token %}
+
+            <div class="form-group mb-4">
+                <label for="documentTitle" class="form-label">Document Title</label>
+                <input type="text" id="documentTitle" name="title" class="form-control large-input" 
+                       placeholder="e.g., Annual Budget Report 2025" required>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6 form-group">
+                    <label for="senderName" class="form-label">Sender Name</label>
+                    <input type="text" id="senderName" name="sender" class="form-control large-input" 
+                           placeholder="e.g., John Doe" required>
+                </div>
+                <div class="col-md-6 form-group">
+                    <label for="priorityLevel" class="form-label">Priority Level</label>
+                    <select id="priorityLevel" name="priority" class="form-select large-input">
+                        <option value="high">High - Urgent</option>
+                        <option value="medium" selected>Medium - Standard</option>
+                        <option value="low">Low - Routine</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group mb-5">
+                <label for="documentContent" class="form-label">Description / Content</label>
+                <textarea id="documentContent" name="content" class="form-control large-textarea" 
+                          placeholder="Paste the document content or a detailed description here. AI will analyze this to generate a summary and suggest routing." 
+                          rows="6" required></textarea>
+            </div>
+            
+            <div class="form-actions mt-4">
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-danger cancel-btn">Cancel</a>
+                <button type="submit" class="btn btn-outline-success register-btn"><i class="bi bi-floppy"></i> Register Document</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

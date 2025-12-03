@@ -1,0 +1,112 @@
+/* ----------------------------------------------------
+   Register New Document Form Styles
+   ---------------------------------------------------- */
+
+.register-document-page-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center the card horizontally */
+    padding: 20px;
+    padding-top: 50px; /* Add space at the top */
+    min-height: 80vh; /* Ensure it takes up vertical space */
+}
+
+.back-link-container {
+    width: 100%;
+    max-width: 700px; /* Match the max-width of the card */
+    margin-bottom: 20px;
+    align-self: center; /* Ensure it aligns with the card */
+}
+
+.back-to-dashboard {
+    color: #6c757d;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: color 0.2s;
+}
+
+.back-to-dashboard:hover {
+    color: #343a40;
+}
+
+.register-form-card {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 700px; /* Fixed width for the form card */
+}
+
+.register-form-card h3 {
+    font-weight: 600;
+    margin-bottom: 30px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 20px;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #343a40;
+    margin-bottom: 5px;
+    display: block;
+}
+
+/* Light input style for GovFlowApp */
+.large-input, .large-textarea, .form-select {
+    background-color: #f8f9fa;       /* light gray background */
+    color: #212529;                   /* dark text for readability */
+    border: 1px solid #ced4da;        /* subtle gray border */
+    padding: 12px 15px;
+    border-radius: 6px;
+    outline: none;                    /* remove default browser outline */
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* Focus / Active state */
+.large-input:focus, 
+.large-textarea:focus, 
+.form-select:focus {
+    border-color: #198754;  /* Bootstrap "success" green */
+    box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25); /* green glow */
+}
+
+/* Placeholder text */
+.large-input::placeholder,
+.large-textarea::placeholder {
+    color: #6c757d;                   /* medium gray */
+    opacity: 1;                        /* ensure visible on all browsers */
+}
+
+
+.ai-note {
+    font-size: 0.85rem;
+    color: #6c757d;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end; /* Push buttons to the right */
+    gap: 15px;
+}
+
+/* 1. Cancel Button Padding */
+.cancel-btn {
+    /* Set your desired padding and use !important to override Bootstrap */
+    padding: 10px 20px !important; 
+    
+    /* Ensure any custom background/border rules are also present if needed */
+    /* e.g., border-radius: 6px; */
+}
+
+/* 2. Register Button Padding */
+.register-btn {
+    /* Set your desired padding and use !important to override Bootstrap */
+    padding: 10px 20px !important; 
+    
+    /* Ensure any custom background/border rules are also present if needed */
+    /* e.g., border-radius: 6px; */
+}
