@@ -1,12 +1,160 @@
 {% extends 'homepage.html' %}
-
+{% load static %}
 {% block title %} GovFlowApp - All Documents {% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/all_documents.css' %}">
 
-<div>
-    <h2>All Document</h2>
+<div class="w-100 my-4">
+
+    <!-- Header and Add Button -->
+    <div class="d-flex justify-content-between align-items-center mb-3 px-3">
+        <h2 class="h4 fw-bold">Document Registry</h2>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="card shadow-sm rounded-3 border p-3 mb-3 w-100"> <!-- mx-0 removes horizontal margin -->
+        <div class="d-flex flex-wrap align-items-center gap-3">
+
+            <div class="d-flex align-items-center gap-2 me-3">
+                <i class="bi bi-funnel text-secondary"></i>
+                <span class="fw-semibold text-secondary small">Filters:</span>
+            </div>
+
+            <!-- Status Filter -->
+            <div class="d-flex align-items-center gap-2">
+                <label for="statusFilter" class="form-label text-uppercase text-secondary small mb-0">Status</label>
+                <select id="statusFilter" class="form-select form-select-sm" onchange="applyFilters()">
+                    <option value="All" {% if status_filter == 'All' %}selected{% endif %}>All Statuses</option>
+                    <option value="Pending" {% if status_filter == 'Pending' %}selected{% endif %}>Pending</option>
+                    <option value="In Transit" {% if status_filter == 'In Transit' %}selected{% endif %}>In Transit</option>
+                    <option value="Received" {% if status_filter == 'Received' %}selected{% endif %}>Received</option>
+                    <option value="Returned" {% if status_filter == 'Returned' %}selected{% endif %}>Returned</option>
+                </select>
+            </div>
+
+            <!-- Priority Filter -->
+            <div class="d-flex align-items-center gap-2">
+                <label for="priorityFilter" class="form-label text-uppercase text-secondary small mb-0">Priority</label>
+                <select id="priorityFilter" class="form-select form-select-sm"
+                    onchange="applyFilters()">
+                    <option value="All" {% if priority_filter == 'All' %}selected{% endif %}>All Priorities</option>
+                    <option value="High" {% if priority_filter == 'High' %}selected{% endif %}>High</option>
+                    <option value="Medium" {% if priority_filter == 'Medium' %}selected{% endif %}>Medium</option>
+                    <option value="Low" {% if priority_filter == 'Low' %}selected{% endif %}>Low</option>
+                </select>
+            </div>
+
+            <!-- Add Document Button aligned right -->
+            <a href="{% url 'new_document' %}" class="btn btn-outline-success d-flex align-items-center gap-2 ms-auto">
+                <i class="bi bi-plus"></i> Add Document
+            </a>
+
+        </div>
+    </div>
+
+    <!-- Document Table Card -->
+    <div class="card shadow-sm rounded-3 border w-100">
+        <div class="table-scroll-wrapper">
+            <table class="table table-hover align-middle mb-0 text-secondary small">
+                <thead class="table-light sticky-top">
+                    <tr>
+                        <th>Tracking ID</th>
+                        <th>Title</th>
+                        <th>Sender</th>
+                        <th>Status</th>
+                        <th>Priority</th>
+                        <th>Current Office</th>
+                        <th>Created</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in documents %}
+                    <tr class="hover-bg-light">
+                        <td class="font-monospace text-secondary">{{ doc.tracking_id }}</td>
+                        <td class="fw-medium text-dark">{{ doc.title }}</td>
+                        <td>{{ doc.sender.first_name }} {{ doc.sender.last_name|default:"N/A" }}</td>
+                        <td>
+                            {% if doc.status == "Pending" %}
+                                <span class="badge border border-warning text-warning bg-transparent">{{ doc.status }}</span>
+                            {% elif doc.status == "Received" %}
+                                <span class="badge border border-success text-success bg-transparent">{{ doc.status }}</span>
+                            {% elif doc.status == "In Transit" %}
+                                <span class="badge border border-info text-info bg-transparent">{{ doc.status }}</span>
+                            {% else %}
+                                <span class="badge border border-secondary text-secondary bg-transparent">{{ doc.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if doc.priority == "High" %}
+                                <span class="badge border border-danger text-danger bg-transparent">{{ doc.priority }}</span>
+                            {% elif doc.priority == "Medium" %}
+                                <span class="badge border border-warning text-warning bg-transparent">{{ doc.priority }}</span>
+                            {% else %}
+                                <span class="badge border border-secondary text-secondary bg-transparent">{{ doc.priority }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted">
+                            <div class="d-flex align-items-center gap-1">
+                                <i class="bi bi-building"></i> {{ doc.current_office.get_full_name|default:"N/A" }}
+                            </div>
+                        </td>
+                        <td class="text-muted">{{ doc.created_at|date:"M d, Y, h:i A" }}</td>
+                        <td class="text-end d-flex justify-content-end gap-2">
+                            <a href="#" class="btn btn-sm btn-outline-success">View Details</a>
+                            <a href="#" class="btn btn-sm btn-outline-danger d-flex align-items-center">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-3 text-muted">No documents found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer d-flex justify-content-between align-items-center small">
+            <span>Showing {{ documents.start_index }} - {{ documents.end_index }} of {{ documents.paginator.count }} document{{ documents.paginator.count|pluralize }}</span>
+            
+            <nav aria-label="Document pagination">
+                <ul class="pagination pagination-sm mb-0 pagination-outline-success">
+                    {% if documents.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ documents.previous_page_number }}&status={{ status_filter }}&priority={{ priority_filter }}" aria-label="Previous">&laquo;</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                    {% endif %}
+
+                    {% for num in documents.paginator.page_range %}
+                        {% if documents.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > documents.number|add:'-3' and num < documents.number|add:'3' %}
+                            <li class="page-item"><a class="page-link" href="?page={{ num }}&status={{ status_filter }}&priority={{ priority_filter }}">{{ num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if documents.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ documents.next_page_number }}&status={{ status_filter }}&priority={{ priority_filter }}" aria-label="Next">&raquo;</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+
+        </div>
+
+    </div>
+
+
 </div>
 
+
+<script src="{% static 'js/all_documents.js' %}"></script>
 
 {% endblock %}

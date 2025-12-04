@@ -70,18 +70,23 @@
                 </div>
 
                 <div class="user-actions">
-                    <button class="icon-btn">
+                    <button class="icon-btn position-relative">
                         <i class="bi bi-bell-fill"></i>
                         <span class="badge"></span>
                     </button>
-                    
-                    <div class="profile-avatar">
-                        <i class="bi bi-person-fill"></i>
+
+                    <div class="profile-section d-flex align-items-center gap-2" id="'profileToggle">
+                        <div class="profile-avatar">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                        <span class="welcome-name">Welcome, {{ request.user.get_full_name }}</span>
                     </div>
-                    <div class="profile-dropdown">
-                        <a href= "{% url 'logout' %}" class="btn btn-outline-danger logout-btn">Logout</a>
+
+                    <div class="profile-dropdown" id="profileDropdown">
+                        <a href="{% url 'logout' %}" class="btn btn-outline-danger logout-btn">Logout</a>
                     </div>
                 </div>
+
 
             </header>
 

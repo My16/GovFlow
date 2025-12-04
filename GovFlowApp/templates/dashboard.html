@@ -9,12 +9,11 @@
 <div class="dashboard-content">
 
     <div class="row summary-cards mb-4">
-        
         <div class="col-lg-3 col-md-6 mb-3">
             <div class="summary-card">
                 <div class="card-text">
                     <p class="card-label">Total Documents</p>
-                    <h3 class="card-value">1</h3>
+                    <h3 class="card-value">{{ total_documents }}</h3>
                 </div>
                 <div class="card-icon blue-bg">
                     <i class="bi bi-file-earmark-text-fill"></i>
@@ -26,7 +25,7 @@
             <div class="summary-card">
                 <div class="card-text">
                     <p class="card-label">In Progress</p>
-                    <h3 class="card-value">0</h3>
+                    <h3 class="card-value">{{ in_progress }}</h3>
                 </div>
                 <div class="card-icon orange-bg">
                     <i class="bi bi-clock-fill"></i>
@@ -38,7 +37,7 @@
             <div class="summary-card">
                 <div class="card-text">
                     <p class="card-label">Received</p>
-                    <h3 class="card-value">1</h3>
+                    <h3 class="card-value">{{ received }}</h3>
                 </div>
                 <div class="card-icon green-bg">
                     <i class="bi bi-check-circle-fill"></i>
@@ -50,7 +49,7 @@
             <div class="summary-card">
                 <div class="card-text">
                     <p class="card-label">High Priority</p>
-                    <h3 class="card-value">1</h3>
+                    <h3 class="card-value">{{ high_priority }}</h3>
                 </div>
                 <div class="card-icon red-bg">
                     <i class="bi bi-exclamation-triangle-fill"></i>
@@ -59,31 +58,59 @@
         </div>
     </div>
 
+
     <div class="recent-documents-section">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h4 class="section-title">Recent Documents</h4>
-            <a href="#" class="view-all-link">View All →</a>
-        </div>
-        
-        <div class="document-card">
-            <div class="document-header">
-                <span class="tag high-priority-tag">High Priority</span>
-                <span class="tag received-tag">Received</span>
-            </div>
-            <h5 class="document-title">Q1 Financial Audit</h5>
-            <p class="document-description">Audit of Q1 expenses, travel, and software.</p>
-            <div class="document-meta">
-                <span class="meta-item"><i class="bi bi-clock"></i> Created 12/2/2025</span>
-                <span class="meta-item"><i class="bi bi-geo-alt"></i> Finance</span>
-            </div>
-            <div class="document-actions">
-                <button class="btn btn-sm btn-outline-secondary action-btn"><i class="bi bi-file-earmark-text"></i> Details</button>
-                <button class="btn btn-sm btn-outline-primary action-btn"><i class="bi bi-send-fill"></i></button>
-                <button class="btn btn-sm btn-outline-secondary action-btn"><i class="bi bi-qr-code"></i></button>
-                <button class="btn btn-sm btn-outline-danger action-btn"><i class="bi bi-trash-fill"></i></button>
-            </div>
+            <a href="{% url 'all_documents' %}" class="view-all-link">View All →</a>
         </div>
 
+        <div class="row recent-documents-cards">
+            {% for doc in recent_documents %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="document-card">
+                    <div class="document-header">
+                        {% if doc.priority == 'High' %}
+                            <span class="tag high-priority-tag">High Priority</span>
+                        {% elif doc.priority == 'Medium' %}
+                            <span class="tag medium-priority-tag">Medium Priority</span>
+                        {% else %}
+                            <span class="tag low-priority-tag">Low Priority</span>
+                        {% endif %}
+
+                        {% if doc.received_at %}
+                            <span class="tag received-tag">Received</span>
+                        {% else %}
+                            <span class="tag in-progress-tag">In Progress</span>
+                        {% endif %}
+                    </div>
+
+                    <h5 class="document-title">{{ doc.title }}</h5>
+                    <p class="document-description">{{ doc.description|truncatechars:80 }}</p>
+                    <div class="document-meta">
+                        <span class="meta-item"><i class="bi bi-clock"></i> Created {{ doc.created_at|date:"M d, Y h:i A" }}</span>
+                        <span class="meta-item"><i class="bi bi-geo-alt"></i> {{ doc.current_office.get_full_name }}</span>
+                    </div>
+                    <div class="document-actions-container">
+                        <div class="document-actions">
+                            <a href="" class="btn btn-sm btn-outline-secondary action-btn">
+                                <i class="bi bi-file-earmark-text"></i> Details
+                            </a>
+                            <button class="btn btn-sm btn-outline-primary action-btn"><i class="bi bi-send-fill"></i></button>
+                            {% if doc.qr_code %}
+                            <a href="" target="_blank" class="btn btn-sm btn-outline-secondary action-btn">
+                                <i class="bi bi-qr-code"></i>
+                            </a>
+                            {% endif %}
+                            <button class="btn btn-sm btn-outline-danger action-btn"><i class="bi bi-trash-fill"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+                <p>No recent documents found.</p>
+            {% endfor %}
+        </div>
     </div>
 </div>
 

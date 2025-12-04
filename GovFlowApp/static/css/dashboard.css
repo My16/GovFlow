@@ -78,12 +78,13 @@
 
 .document-card {
     background-color: #ffffff;
-    padding: 20px;
+    padding: 20px 20px 0 20px;
     border-radius: 12px;
     border: 1px solid #e0e0e0;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     margin-bottom: 20px;
-    max-width: 500px;
+    /* max-width: 500px; */
+    width: 100%; /* ensure it fills the column */
 }
 
 .document-header {
@@ -125,6 +126,7 @@
     font-size: 0.9rem;
     color: #6c757d;
     margin-bottom: 10px;
+    min-height: 48px;
 }
 
 .document-meta {
@@ -144,38 +146,40 @@
 }
 
 .document-actions {
-    display: flex; /* Aligns children horizontally */
-    align-items: center; 
-    gap: 8px; /* Adds consistent spacing between all buttons */
-    /* Ensure no conflicting width/margin rules exist on this container */
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.document-actions button:first-child {
-    flex-grow: 1;
-    text-align: center;
-    border-radius: 6px;
-    padding: 6px 12px;
-    font-size: 1rem;
-    font-weight: 600;
-}
-
-.document-actions button:not(:first-child) {
-    /* Fixed width/height for small icon buttons */
-    width: 36px; 
-    height: 36px;
-    padding: 0; 
-    flex-shrink: 0; /* Prevents these buttons from shrinking */
-    
-    /* Center the icon visually */
+.document-actions .action-btn {
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none; /* for <a> links */
+    padding: 6px 12px;
 }
 
-/* Ensure icons inside the small buttons don't have margins */
-.document-actions button:not(:first-child) i {
-    margin-right: 0 !important; 
+.document-actions .action-btn:first-child {
+    flex-grow: 1;
+    text-align: center;
+    padding: 6px 12px; /* primary "Details" button */
 }
+
+.document-actions .action-btn:not(:first-child) {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    flex-shrink: 0;
+    font-size: 1.1rem;
+}
+
+.document-actions .action-btn i {
+    margin-right: 0 !important;
+}
+
 
 /* .document-actions .action-btn {
     margin-right: 8px;
@@ -184,3 +188,34 @@
 .document-actions .action-btn i {
     margin-right: 5px;
 } */
+
+.medium-priority-tag {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+
+.low-priority-tag {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+.in-progress-tag {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+
+.document-actions-container {
+    /* Gray background for the action bar */
+    background-color: #f8f9fa; 
+    /* Padding around the buttons: Increased vertical padding (16px) for more balance */
+    padding: 12px 12px; 
+    /* Use negative margin to span the full width of the card */
+    margin: 0 -20px; 
+    border-bottom-left-radius: 12px; 
+    border-bottom-right-radius: 12px; 
+    /* Add a subtle top border to separate it from the content above */
+    border-top: 1px solid #e0e0e0; 
+}

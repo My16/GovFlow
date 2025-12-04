@@ -19,38 +19,47 @@
         <form action="#" method="POST" class="document-registration-form">
             {% csrf_token %}
 
+            <!-- Document Title -->
             <div class="form-group mb-4">
                 <label for="documentTitle" class="form-label">Document Title</label>
                 <input type="text" id="documentTitle" name="title" class="form-control large-input" 
                        placeholder="e.g., Annual Budget Report 2025" required>
             </div>
 
+            <!-- Row for Priority and Document Origin -->
             <div class="row mb-4">
+                <!-- Document Origin (readonly visible) -->
                 <div class="col-md-6 form-group">
-                    <label for="senderName" class="form-label">Sender Name</label>
-                    <input type="text" id="senderName" name="sender" class="form-control large-input" 
-                           placeholder="e.g., John Doe" required>
+                    <label for="documentOrigin" class="form-label">Document Origin</label>
+                    <input type="text" id="documentOrigin" name="current_office" class="form-control large-input"
+                        value="{{ request.user.get_full_name }}" readonly>
                 </div>
+
+                <!-- Priority -->
                 <div class="col-md-6 form-group">
                     <label for="priorityLevel" class="form-label">Priority Level</label>
                     <select id="priorityLevel" name="priority" class="form-select large-input">
-                        <option value="high">High - Urgent</option>
-                        <option value="medium" selected>Medium - Standard</option>
-                        <option value="low">Low - Routine</option>
+                        <option value="High">High - Urgent</option>
+                        <option value="Medium" selected>Medium - Standard</option>
+                        <option value="Low">Low - Routine</option>
                     </select>
                 </div>
             </div>
-            
+
+
+            <!-- Description -->
             <div class="form-group mb-5">
                 <label for="documentContent" class="form-label">Description / Content</label>
-                <textarea id="documentContent" name="content" class="form-control large-textarea" 
-                          placeholder="Paste the document content or a detailed description here. AI will analyze this to generate a summary and suggest routing." 
+                <textarea id="documentContent" name="description" class="form-control large-textarea" 
+                          placeholder="Paste the document content or a detailed description here." 
                           rows="6" required></textarea>
             </div>
-            
+
             <div class="form-actions mt-4">
                 <a href="{% url 'dashboard' %}" class="btn btn-outline-danger cancel-btn">Cancel</a>
-                <button type="submit" class="btn btn-outline-success register-btn"><i class="bi bi-floppy"></i> Register Document</button>
+                <button type="submit" class="btn btn-outline-success register-btn">
+                    <i class="bi bi-floppy"></i> Register Document
+                </button>
             </div>
         </form>
     </div>

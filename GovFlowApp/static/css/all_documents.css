@@ -1,0 +1,82 @@
+.hover-bg-light:hover {
+    background-color: #f8f9fa !important;
+}
+.text-orange {
+    color: #fd7e14 !important;
+}
+.btn-outline-success {
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+}
+.btn-outline-success:hover {
+    background-color: #198754;
+    color: #fff;
+}
+
+.table thead th {
+    padding-top: 0.5rem;    /* vertical padding */
+    padding-bottom: 0.5rem;
+    padding-left: 0.75rem;  /* horizontal padding */
+    padding-right: 0.75rem;
+    font-size: 0.85rem;     /* smaller header text */
+    font-weight: 600;       /* optional bold */
+}
+
+.table tbody td {
+    padding: 0.5rem 0.75rem;  /* vertical | horizontal */
+    font-size: 0.85rem;       /* smaller text */
+}
+
+.table-scroll-wrapper {
+    max-height: 400px;    /* height of scrollable area */
+    overflow: auto;       /* both vertical and horizontal scroll */
+}
+
+.table-scroll-wrapper table {
+    min-width: 1000px;    /* ensures horizontal scroll appears if table wider than container */
+    border-collapse: collapse;
+}
+
+.table-scroll-wrapper thead th {
+    position: sticky;
+    top: 0;
+    background-color: #fff; /* matches table header */
+    z-index: 10;
+}
+
+.card-footer {
+    display: flex;
+    justify-content: space-between; /* left: info, right: pagination */
+    align-items: center;
+    padding: 0.5rem 1rem;
+}
+/* Outline green pagination like btn-outline-success */
+.pagination-outline-success .page-link {
+    color: #198754;            /* Green text */
+    border: 1px solid #198754; /* Green border */
+    background-color: transparent;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.pagination-outline-success .page-link:hover {
+    background-color: #198754;
+    color: #fff;
+    text-decoration: none;
+}
+
+.pagination-outline-success .page-item.active .page-link {
+    background-color: #198754;
+    color: #fff;
+    border-color: #198754;
+}
+
+.pagination-outline-success .page-item.disabled .page-link {
+    color: #6c757d;
+    border-color: #dee2e6;
+    pointer-events: none;
+}
+
+.pagination .page-item {
+    margin-right: 0.25rem; /* small spacing between buttons */
+}

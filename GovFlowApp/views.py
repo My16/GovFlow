@@ -3,6 +3,9 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import UserProfileForm
+from django.contrib.auth.models import User
+from .models import Document
+from django.core.paginator import Paginator
 
 # Create your views here.
 
@@ -72,21 +75,71 @@ def homepage(request):
 
 @login_required(login_url='loginpage')
 def dashboard(request):
-    
-    context = {}
+    # Get only documents created by the logged-in user
+    user_documents = Document.objects.filter(sender=request.user)
+
+    # Summary counts for this user
+    total_documents = user_documents.count()
+    in_progress = user_documents.filter(received_at__isnull=True).count()
+    received = user_documents.filter(received_at__isnull=False).count()
+    high_priority = user_documents.filter(priority='High').count()
+
+    # 6 most recent documents for this user
+    recent_documents = user_documents.order_by('-created_at')[:6]
+
+    context = {
+        "total_documents": total_documents,
+        "in_progress": in_progress,
+        "received": received,
+        "high_priority": high_priority,
+        "recent_documents": recent_documents,
+    }
 
     return render(request, 'dashboard.html', context)
 
 @login_required(login_url='loginpage')
 def all_documents(request):
-    
-    context = {}
+    # Filter documents created by the current logged-in user
+    documents = Document.objects.filter(sender=request.user).order_by('-created_at')
 
+    # Apply filters
+    status_filter = request.GET.get('status', 'All')
+    priority_filter = request.GET.get('priority', 'All')
+    if priority_filter != 'All':
+        documents = documents.filter(priority=priority_filter)
+    if status_filter != 'All':
+        documents = documents.filter(status=status_filter)
+
+    # Pagination
+    page_number = request.GET.get('page', 1)
+    paginator = Paginator(documents, 10)  # 10 documents per page
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'documents': page_obj,  # pass page object
+        'status_filter': status_filter,
+        'priority_filter': priority_filter,
+        'paginator': paginator,
+    }
     return render(request, 'all_documents.html', context)
 
 @login_required(login_url='loginpage')
 def new_document(request):
-    
-    context = {}
+    if request.method == "POST":
+        title = request.POST.get("title")
+        priority = request.POST.get("priority")
+        description = request.POST.get("description")
 
-    return render(request, 'new_document.html', context)
+        # current_office defaults to sender in models.py, no need to get from form
+        Document.objects.create(
+            title=title,
+            sender=request.user,
+            priority=priority,
+            description=description
+        )
+
+        messages.success(request, "Document registered successfully.")
+        return redirect("dashboard")
+    
+    # No need to pass 'users' if they are not used in the form
+    return render(request, 'new_document.html')

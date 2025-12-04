@@ -421,14 +421,6 @@ body {
     display: none !important;
 }
 
-/* Hide logout in mobile mode like collapse arrow */
-@media (max-width: 768px) {
-    .logout-btn {
-        display: none;
-    }
-}
-
-
 /* Profile dropdown positioning */
 .user-actions {
     position: relative;
@@ -436,7 +428,7 @@ body {
 
 .profile-dropdown {
     position: absolute;
-    top: 50px; /* adjust based on header height */
+    top: 50px;
     right: 0;
     display: none;
     flex-direction: column;
@@ -449,9 +441,36 @@ body {
     z-index: 1000;
 }
 
-/* Show on hover for desktop */
-@media (hover: hover) {
-    .profile-avatar:hover + .profile-dropdown {
-        display: flex;
-    }
+.profile-dropdown.show-dropdown {
+    display: flex;
+}
+
+/* Container for avatar + welcome name */
+.profile-section {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem; /* space between avatar and text */
+}
+
+/* Avatar styling */
+.profile-avatar i {
+    font-size: 1.5rem;
+    color: #198754; /* green accent */
+}
+
+/* Welcome text styling */
+.welcome-name {
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: #343a40;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Header actions spacing */
+.user-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem; /* spacing between bell, profile-section, etc. */
 }
