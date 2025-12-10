@@ -8,3 +8,17 @@ function applyFilters() {
 
     window.location.href = '?' + params.toString();
 }
+
+document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const url = this.getAttribute('data-url');
+        const iframe = document.getElementById('pdfFrame');
+        const downloadBtn = document.getElementById('pdfDownloadBtn');
+
+        iframe.src = url;
+        downloadBtn.href = url;
+
+        const modal = new bootstrap.Modal(document.getElementById('detailsModal'));
+        modal.show();
+    });
+});

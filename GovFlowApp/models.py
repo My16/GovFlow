@@ -4,6 +4,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.core.files import File
+from django.db.models.signals import pre_save, post_delete, post_save
+from django.dispatch import receiver
 
 
 class UserProfile(models.Model):
@@ -61,18 +63,15 @@ class Document(models.Model):
         # Generate tracking ID if not set
         if not self.tracking_id:
             current_year = timezone.now().year
-            last_doc = Document.objects.filter(tracking_id__startswith=f"TR-{current_year}").order_by("id").last()
+            last_doc = Document.objects.filter(tracking_id__startswith=f"TRK-{current_year}").order_by("id").last()
             next_number = int(last_doc.tracking_id[-5:]) + 1 if last_doc else 1
-            self.tracking_id = f"TR-{current_year}-{next_number:05d}"
+            self.tracking_id = f"TRK-{current_year}-{next_number:05d}"
 
-        # Set current_location automatically if not set
+        # Set current_office automatically if not set
         if not self.current_office:
             self.current_office = self.sender  # default to sender
 
-
-        super().save(*args, **kwargs)  # Save to get ID
-
-        # Generate/update QR code every save
+        # Generate QR code before saving
         qr_data = (
             f"Tracking ID: {self.tracking_id}\n"
             f"Title: {self.title}\n"
@@ -97,10 +96,12 @@ class Document(models.Model):
         img.save(buffer, format="PNG")
         file_name = f"QR_{self.tracking_id}.png"
 
+        # Attach QR code to instance but don't save yet
         self.qr_code.save(file_name, File(buffer), save=False)
         buffer.close()
 
-        super().save(update_fields=["qr_code"])
+        # Save the instance once
+        super().save(*args, **kwargs)
 
     # Forward document to another location
     def forward_to(self, new_office, forwarded_by=None, note=None):
@@ -150,10 +151,27 @@ class Document(models.Model):
             performed_by=returned_by
         )
 
+# Signal to delete old QR code when updating
+@receiver(pre_save, sender=Document)
+def delete_old_qr_code_file(sender, instance, **kwargs):
+    if not instance.pk:
+        return  # skip if new instance
+    try:
+        old_instance = Document.objects.get(pk=instance.pk)
+    except Document.DoesNotExist:
+        return
+    if old_instance.qr_code and old_instance.qr_code != instance.qr_code:
+        old_instance.qr_code.delete(save=False)
 
+# Signal to delete QR code file when deleting the Document
+@receiver(post_delete, sender=Document)
+def delete_qr_code_file(sender, instance, **kwargs):
+    if instance.qr_code:
+        instance.qr_code.delete(save=False)
 
 class DocumentHistory(models.Model):
     ACTION_CHOICES = [
+        ("Pending", "Pending"),
         ("Forwarded", "Forwarded"),
         ("Received", "Received"),
         ("Returned", "Returned"),
@@ -169,3 +187,15 @@ class DocumentHistory(models.Model):
 
     def __str__(self):
         return f"{self.document.tracking_id} - {self.action} at {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
+
+@receiver(post_save, sender=Document)
+def create_initial_history(sender, instance, created, **kwargs):
+    if created:
+        DocumentHistory.objects.create(
+            document=instance,
+            action=instance.status,
+            from_office=None,
+            to_office=instance.current_office,  # store the user object
+            note="Document created",
+            performed_by=instance.sender
+        )

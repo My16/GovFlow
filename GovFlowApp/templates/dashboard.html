@@ -93,7 +93,7 @@
                     </div>
                     <div class="document-actions-container">
                         <div class="document-actions">
-                            <a href="" class="btn btn-sm btn-outline-secondary action-btn">
+                            <a href="{% url 'document_detail' doc.pk %}" class="btn btn-sm btn-outline-secondary action-btn">
                                 <i class="bi bi-file-earmark-text"></i> Details
                             </a>
                             <button class="btn btn-sm btn-outline-primary action-btn"><i class="bi bi-send-fill"></i></button>
@@ -102,7 +102,41 @@
                                 <i class="bi bi-qr-code"></i>
                             </a>
                             {% endif %}
-                            <button class="btn btn-sm btn-outline-danger action-btn"><i class="bi bi-trash-fill"></i></button>
+                            <!-- Delete Button -->
+                            <button class="btn btn-sm btn-outline-danger action-btn" data-bs-toggle="modal" data-bs-target="#deleteModal{{ doc.id }}"><i class="bi bi-trash-fill"></i></button>
+
+                            <!-- Delete Confirmation Modal -->
+                            <div class="modal fade" id="deleteModal{{ doc.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+
+                                        <div class="modal-header bg-danger text-white">
+                                            <h5 class="modal-title">Delete Document</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+
+                                        <div class="modal-body">
+                                            <p>Are you sure you want to delete this document?</p>
+                                            <p class="fw-bold">{{ doc.tracking_id }} — {{ doc.title }}</p>
+                                            <p class="text-muted">This action cannot be undone.</p>
+                                        </div>
+
+                                        <div class="modal-footer">
+                                            <button class="btn btn-secondary" data-bs-dismiss="modal">
+                                                Cancel
+                                            </button>
+
+                                            <form method="POST" action="{% url 'delete_document' doc.id %}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger">
+                                                    Yes, Delete
+                                                </button>
+                                            </form>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

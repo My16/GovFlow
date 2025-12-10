@@ -1,11 +1,15 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import UserProfileForm
-from django.contrib.auth.models import User
 from .models import Document
 from django.core.paginator import Paginator
+from django.http import HttpResponse
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+import base64, os
+from django.conf import settings
 
 # Create your views here.
 
@@ -143,3 +147,77 @@ def new_document(request):
     
     # No need to pass 'users' if they are not used in the form
     return render(request, 'new_document.html')
+
+
+@login_required(login_url='loginpage')
+def delete_document(request, pk):
+    document = get_object_or_404(Document, pk=pk)
+
+    if request.method == "POST":
+        document.delete()
+        messages.success(request, "Document successfully deleted.")
+        return redirect("all_documents")  # update your list view name
+
+    messages.error(request, "Invalid request.")
+    return redirect("all_documents")
+
+@login_required
+def document_detail(request, pk):
+    document = get_object_or_404(Document, pk=pk)
+
+    # Only allow viewing if:
+    # - User is sender OR current office
+    if request.user != document.sender and request.user != document.current_office:
+        messages.error(request, "You are not authorized to view this document.")
+        return redirect("documents:list")
+
+    history = document.history.order_by("-timestamp")
+
+    context = {
+        "document": document,
+        "history": history,
+    }
+
+    return render(request, "document_detail.html", context)
+
+
+def document_pdf(request, pk):
+    document = get_object_or_404(Document, pk=pk)
+    template_path = 'document_pdf.html'
+
+    # Convert QR code to base64
+    qr_base64 = ""
+    if document.qr_code:
+        with open(document.qr_code.path, "rb") as qr_file:
+            qr_bytes = qr_file.read()
+            qr_base64 = base64.b64encode(qr_bytes).decode("utf-8")
+
+     # Convert logos to Base64
+    mharsmc_logo_path = r"D:\Code\GovFlow\GovFlowApp\static\img\mharsmc.png"
+    doh_logo_path = r"D:\Code\GovFlow\GovFlowApp\static\img\doh_logo.png"
+
+    def img_to_base64(path):
+        with open(path, "rb") as f:
+            return base64.b64encode(f.read()).decode("utf-8")
+
+    mharsmc_logo_base64 = img_to_base64(mharsmc_logo_path)
+    doh_logo_base64 = img_to_base64(doh_logo_path)
+
+    context = {
+        'document': document,
+        'qr_base64': qr_base64,
+        'mharsmc_logo_base64': mharsmc_logo_base64,
+        'doh_logo_base64': doh_logo_base64,
+    }
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="document_{document.tracking_id}.pdf"'
+
+    template = get_template(template_path)
+    html = template.render(context)
+
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    if pisa_status.err:
+        return HttpResponse('Error generating PDF <pre>' + html + '</pre>')
+
+    return response
