@@ -12,4 +12,8 @@ urlpatterns = [
     path('documents/<int:pk>/', views.document_detail, name='document_detail'),
     path("delete/<int:pk>/", views.delete_document, name="delete_document"),
     path('documents/<int:pk>/pdf/', views.document_pdf, name='document_pdf'),
+    path('documents/<int:pk>/forward/', views.forward_document, name='forward_document'),
+    path('documents/receive/', views.receive_document, name='receive_document'),
+    path("receive/", views.receive_page, name="receive_page"),
+    path("receive/submit/", views.receive_document, name="receive_document"),
 ]

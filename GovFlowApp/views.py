@@ -10,6 +10,9 @@ from django.template.loader import get_template
 from xhtml2pdf import pisa
 import base64, os
 from django.conf import settings
+from django.contrib.auth.models import User
+from collections import defaultdict
+from django.db.models import Q
 
 # Create your views here.
 
@@ -79,8 +82,10 @@ def homepage(request):
 
 @login_required(login_url='loginpage')
 def dashboard(request):
-    # Get only documents created by the logged-in user
-    user_documents = Document.objects.filter(sender=request.user)
+    # Get documents where user is sender OR current office
+    user_documents = Document.objects.filter(
+        Q(sender=request.user) | Q(current_office=request.user)
+    )
 
     # Summary counts for this user
     total_documents = user_documents.count()
@@ -91,20 +96,29 @@ def dashboard(request):
     # 6 most recent documents for this user
     recent_documents = user_documents.order_by('-created_at')[:6]
 
+    departments = defaultdict(list)
+    all_users = User.objects.select_related("userprofile").all()
+    for u in all_users:
+        if hasattr(u, "userprofile") and u.userprofile.department:
+            departments[u.userprofile.department].append(u)
+
     context = {
         "total_documents": total_documents,
         "in_progress": in_progress,
         "received": received,
         "high_priority": high_priority,
         "recent_documents": recent_documents,
+        "departments": dict(departments),
     }
 
     return render(request, 'dashboard.html', context)
 
 @login_required(login_url='loginpage')
 def all_documents(request):
-    # Filter documents created by the current logged-in user
-    documents = Document.objects.filter(sender=request.user).order_by('-created_at')
+    # Get documents where user is sender OR current office
+    documents = Document.objects.filter(
+        Q(sender=request.user) | Q(current_office=request.user)
+    ).order_by('-created_at')
 
     # Apply filters
     status_filter = request.GET.get('status', 'All')
@@ -119,11 +133,22 @@ def all_documents(request):
     paginator = Paginator(documents, 10)  # 10 documents per page
     page_obj = paginator.get_page(page_number)
 
+    # GROUP USERS BY DEPARTMENT
+    from collections import defaultdict
+    departments = defaultdict(list)
+
+    all_users = User.objects.select_related("userprofile").all()
+    for u in all_users:
+        if hasattr(u, "userprofile") and u.userprofile.department:
+            departments[u.userprofile.department].append(u)
+
+
     context = {
         'documents': page_obj,  # pass page object
         'status_filter': status_filter,
         'priority_filter': priority_filter,
         'paginator': paginator,
+        'departments': dict(departments),
     }
     return render(request, 'all_documents.html', context)
 
@@ -169,13 +194,24 @@ def document_detail(request, pk):
     # - User is sender OR current office
     if request.user != document.sender and request.user != document.current_office:
         messages.error(request, "You are not authorized to view this document.")
-        return redirect("documents:list")
+        return redirect("all_documents")
+    
+    # GROUP USERS BY DEPARTMENT
+    from collections import defaultdict
+    departments = defaultdict(list)
+
+    all_users = User.objects.select_related("userprofile").all()
+    for u in all_users:
+        if hasattr(u, "userprofile") and u.userprofile.department:
+            departments[u.userprofile.department].append(u)
+
 
     history = document.history.order_by("-timestamp")
 
     context = {
         "document": document,
         "history": history,
+        "departments": dict(departments),
     }
 
     return render(request, "document_detail.html", context)
@@ -221,3 +257,92 @@ def document_pdf(request, pk):
         return HttpResponse('Error generating PDF <pre>' + html + '</pre>')
 
     return response
+
+
+@login_required
+def forward_document(request, pk):
+    document = get_object_or_404(Document, pk=pk)
+
+    if request.method == "POST":
+        new_office_id = request.POST.get("new_office")
+        note = request.POST.get("note")
+
+        new_office_user = get_object_or_404(User, id=new_office_id)
+
+        # Use model method you already created
+        document.forward_to(
+            new_office=new_office_user,
+            forwarded_by=request.user,
+            note=note
+        )
+
+        messages.success(request, "Document forwarded successfully.")
+        return redirect("document_detail", pk=pk)
+
+    messages.error(request, "Invalid request.")
+    return redirect("document_detail", pk=pk)
+
+
+@login_required(login_url='loginpage')
+def receive_page(request):
+    # Expected arrivals: documents forwarded to this user but NOT marked as received
+    incoming = Document.objects.filter(
+        history__action="Forwarded",
+        history__to_office=request.user,
+        received_at__isnull=True
+    ).distinct()
+
+    context = {
+        "incoming": incoming
+    }
+    return render(request, "receive.html", context)
+
+
+@login_required
+def receive_document(request):
+    if request.method != "POST":
+        messages.error(request, "Invalid request.")
+        return redirect("receive_page")
+
+    tracking_id = request.POST.get("tracking_id")
+    if not tracking_id:
+        messages.error(request, "Tracking ID is required.")
+        return redirect("receive_page")
+
+    # Look for the document
+    try:
+        document = Document.objects.get(tracking_id=tracking_id)
+    except Document.DoesNotExist:
+        messages.error(request, "Document not found with this tracking ID.")
+        return redirect("receive_page")
+
+    # Check if document has already been received by this user/office
+    if document.status == "Received" and document.current_office == request.user:
+        messages.warning(request, f"Document {document.tracking_id} has already been received by your office.")
+        return redirect("receive_page")
+
+    # Get the last forward action from history
+    last_forward = document.history.filter(action="Forwarded").order_by("-timestamp").first()
+
+    if not last_forward:
+        messages.error(request, "This document has not been forwarded to any office yet.")
+        return redirect("receive_page")
+
+    # Check if the logged-in user belongs to the forwarded office
+    if request.user != last_forward.to_office:
+        messages.error(
+            request,
+            f"You are not authorized to receive this document. "
+            f"This document is assigned to {last_forward.to_office.get_full_name()}."
+        )
+        return redirect("receive_page")
+
+    # Mark as received
+    document.mark_received(
+        receiving_office=request.user,
+        received_by=request.user,
+        note="Received via QR/manual entry"
+    )
+
+    messages.success(request, f"Document {document.tracking_id} received successfully.")
+    return redirect("receive_page")

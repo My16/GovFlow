@@ -78,10 +78,16 @@
                             <span class="tag low-priority-tag">Low Priority</span>
                         {% endif %}
 
-                        {% if doc.received_at %}
+                        {% if doc.status == 'Pending' %}
+                            <span class="tag pending-tag">Pending</span>
+                        {% elif doc.status == 'In Transit' %}
+                            <span class="tag in-transit-tag">In Transit</span>
+                        {% elif doc.status == 'Received' %}
                             <span class="tag received-tag">Received</span>
-                        {% else %}
-                            <span class="tag in-progress-tag">In Progress</span>
+                        {% elif doc.status == 'Returned' %}
+                            <span class="tag returned-tag">Returned</span>
+                        {% elif doc.status == 'Archived' %}
+                            <span class="tag archived-tag">Archived</span>
                         {% endif %}
                     </div>
 
@@ -96,14 +102,16 @@
                             <a href="{% url 'document_detail' doc.pk %}" class="btn btn-sm btn-outline-secondary action-btn">
                                 <i class="bi bi-file-earmark-text"></i> Details
                             </a>
-                            <button class="btn btn-sm btn-outline-primary action-btn"><i class="bi bi-send-fill"></i></button>
+                            <!-- forward button -->
+                            <button class="btn btn-sm btn-outline-primary action-btn" data-document-id="{{ doc.pk }}" data-bs-toggle="modal" data-bs-target="#forwardModal" {% if doc.current_office != request.user or doc.status == "In Transit" %} disabled{% endif %}><i class="bi bi-send-fill"></i></button>
+                            <!-- qr code button -->
                             {% if doc.qr_code %}
                             <a href="" target="_blank" class="btn btn-sm btn-outline-secondary action-btn">
                                 <i class="bi bi-qr-code"></i>
                             </a>
                             {% endif %}
                             <!-- Delete Button -->
-                            <button class="btn btn-sm btn-outline-danger action-btn" data-bs-toggle="modal" data-bs-target="#deleteModal{{ doc.id }}"><i class="bi bi-trash-fill"></i></button>
+                            <button class="btn btn-sm btn-outline-danger action-btn" data-bs-toggle="modal" data-bs-target="#deleteModal{{ doc.id }}" {% if doc.current_office != request.user %} disabled{% endif %}><i class="bi bi-trash-fill"></i></button>
 
                             <!-- Delete Confirmation Modal -->
                             <div class="modal fade" id="deleteModal{{ doc.id }}" tabindex="-1" aria-hidden="true">
@@ -137,6 +145,8 @@
                                     </div>
                                 </div>
                             </div>
+
+                            
                         </div>
                     </div>
                 </div>
@@ -145,8 +155,54 @@
                 <p>No recent documents found.</p>
             {% endfor %}
         </div>
+
+        <!-- FORWARD DOCUMENT MODAL -->
+        <div class="modal fade" id="forwardModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <form method="POST" action="">
+                        {% csrf_token %}
+                        
+                        <div class="modal-header bg-success text-white">
+                            <h5 class="modal-title">Forward Document</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+
+                        <div class="modal-body">
+
+                            <!-- Select User/Office -->
+                            <label class="form-label">Forward To (Office/User)</label>
+                            <select name="new_office" class="form-select" required>
+                                <option value="">Select Office</option>
+
+                                {% for department, users in departments.items %}
+                                <optgroup label="{{ department }}">
+                                    {% for u in users %}
+                                    <option value="{{ u.id }}">
+                                        {{ u.get_full_name }}
+                                    </option>
+                                    {% endfor %}
+                                </optgroup>
+                                {% endfor %}
+                            </select>
+
+                            <!-- Note -->
+                            <label class="form-label mt-3">Note (Optional)</label>
+                            <textarea name="note" class="form-control" rows="3"></textarea>
+
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Cancel</button>
+                            <button class="btn btn-outline-success">Forward</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
+<script src="{% static 'js/dashboard.js' %}"></script>
 
 {% endblock %}

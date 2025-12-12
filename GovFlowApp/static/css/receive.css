@@ -1,0 +1,79 @@
+.max-width-wrapper {
+    max-width: 900px;
+}
+
+/* Scan QR Card - Green Theme */
+.scan-card {
+    background: #198754; /* Bootstrap success green */
+    cursor: pointer;
+    border-radius: 1.25rem;
+    transition: transform .2s ease, background .2s ease;
+    position: relative;
+}
+
+.scan-card:hover {
+    transform: translateY(-2px); /* subtle lift */
+    background: #157347; /* slightly darker green on hover */
+}
+
+.scan-card .hover-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.1);
+    opacity: 0;
+    transition: opacity .3s ease;
+}
+
+.scan-card:hover .hover-overlay {
+    opacity: 1;
+}
+
+.btn-outline-success:hover {
+    color: #fff; /* text turns white on hover */
+    background-color: #198754; /* Bootstrap success green */
+    border-color: #198754;
+}
+
+
+/* Manual Entry Card */
+.manual-entry-card input {
+    padding: 12px;
+    font-family: monospace;
+}
+
+/* Expected Card */
+.expected-card {
+    border-radius: 1.25rem;
+}
+
+.expected-card .list-group-item {
+    border: none; /* remove default bootstrap border */
+    background: #fff;
+    transition: background 0.2s ease; /* only background changes */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+/* subtle hover: light grey, no movement */
+.expected-card .list-group-item.hover-bg:hover {
+    background: #f1f3f5; /* light grey */
+    transform: none; /* no movement */
+}
+
+.text-monospace {
+    font-family: monospace;
+}
+
+.text-truncate {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.badge.text-uppercase {
+    font-size: 0.65rem;
+    letter-spacing: 0.5px;
+}

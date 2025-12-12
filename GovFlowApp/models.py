@@ -96,32 +96,51 @@ class Document(models.Model):
         img.save(buffer, format="PNG")
         file_name = f"QR_{self.tracking_id}.png"
 
-        # Attach QR code to instance but don't save yet
+        # Delete old QR code if exists to ensure overwrite
+        if self.qr_code:
+            self.qr_code.delete(save=False)
+
+        # Save the new QR code
         self.qr_code.save(file_name, File(buffer), save=False)
         buffer.close()
 
-        # Save the instance once
+        # Save the instance
         super().save(*args, **kwargs)
+
 
     # Forward document to another location
     def forward_to(self, new_office, forwarded_by=None, note=None):
-        old_office = self.current_office
-        self.current_office = new_office
-        self.status = "In Transit"  # <-- update status
-        self.save(update_fields=["current_office", "status"])
+        """
+        Forward the document to a new office.
+        - current_office remains the sender until received.
+        - status changes to 'In Transit'.
+        - DocumentHistory logs the action.
+        """
+        old_office = self.current_office  # Keep track of sender/current office
+
+        self.status = "In Transit"
+        self.save(update_fields=["status"])
 
         DocumentHistory.objects.create(
             document=self,
             action="Forwarded",
-            from_office=old_office,
+            from_office=old_office,  # log the current office as sender
             to_office=new_office,
             note=note,
             performed_by=forwarded_by or self.sender
         )
 
-
+    # Mark document as received
     def mark_received(self, receiving_office, received_by=None, note=None):
-        old_office = self.current_office
+        """
+        Mark the document as received at the receiving office.
+        - current_office is updated to the receiving office.
+        - status changes to 'Received'.
+        - received_at timestamp is set.
+        - DocumentHistory logs the action with previous office.
+        """
+        old_office = self.current_office  # Track the office that forwarded it
+
         self.current_office = receiving_office
         self.status = "Received"
         self.received_at = timezone.now()
@@ -130,11 +149,12 @@ class Document(models.Model):
         DocumentHistory.objects.create(
             document=self,
             action="Received",
-            from_office=old_office,
+            from_office=old_office,  # log the previous office
             to_office=receiving_office,
             note=note,
             performed_by=received_by
         )
+
 
     def return_document(self, return_to_office, returned_by=None, note=None):
         old_office = self.current_office

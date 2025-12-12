@@ -111,13 +111,13 @@
                                 <i class="bi bi-qr-code"></i>
                             </a>
                             <!-- Send Button -->
-                            <button class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center">
+                            <button class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center" data-document-id="{{ doc.pk }}" data-bs-toggle="modal" data-bs-target="#forwardModal" {% if doc.current_office != request.user or doc.status == "In Transit" %} disabled{% endif %}>
                                 <i class="bi bi-send-fill"></i>
                             </button>
                             <!-- Delete Button -->
-                            <a class="btn btn-sm btn-outline-danger d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#deleteModal{{ doc.id }}">
+                            <button class="btn btn-sm btn-outline-danger d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#deleteModal{{ doc.id }}" {% if doc.current_office != request.user %} disabled{% endif %}>
                                 <i class="bi bi-trash"></i>
-                            </a>
+                            </button>
                         </td>
                         <!-- Delete Modal -->
                         <div class="modal fade" id="deleteModal{{ doc.id }}" tabindex="-1" aria-hidden="true">
@@ -214,6 +214,51 @@
                 <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
 
+        </div>
+    </div>
+</div>
+
+<!-- FORWARD DOCUMENT MODAL -->
+<div class="modal fade" id="forwardModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" action="">
+                {% csrf_token %}
+                
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">Forward Document</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <!-- Select User/Office -->
+                    <label class="form-label">Forward To (Office/User)</label>
+                    <select name="new_office" class="form-select" required>
+                        <option value="">Select Office</option>
+
+                        {% for department, users in departments.items %}
+                        <optgroup label="{{ department }}">
+                            {% for u in users %}
+                            <option value="{{ u.id }}">
+                                {{ u.get_full_name }}
+                            </option>
+                            {% endfor %}
+                        </optgroup>
+                        {% endfor %}
+                    </select>
+
+                    <!-- Note -->
+                    <label class="form-label mt-3">Note (Optional)</label>
+                    <textarea name="note" class="form-control" rows="3"></textarea>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-outline-success">Forward</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

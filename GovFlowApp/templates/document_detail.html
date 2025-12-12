@@ -26,14 +26,24 @@
                         <i class="bi bi-arrow-counterclockwise me-1"></i> Return
                     </button>
 
-                    <button class="btn btn-primary flex-grow-0">
+                    <button class="btn btn-primary flex-grow-0"
+                            {% if document.current_office != request.user or document.status == "In Transit" %}
+                                disabled
+                            {% else %}
+                                data-document-id="{{ document.pk }}" data-bs-toggle="modal" data-bs-target="#forwardModal"
+                            {% endif %}>
                         <i class="bi bi-send me-1"></i> Forward
                     </button>
 
+
                     <!-- Delete Button -->
-                    <button class="btn btn-outline-danger flex-grow-0" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                    <button class="btn btn-outline-danger flex-grow-0"
+                            data-bs-toggle="modal" data-bs-target="#deleteModal"
+                            {% if document.current_office != request.user %} disabled{% endif %}>
                         <i class="bi bi-trash me-1"></i> Delete
                     </button>
+
+
                 </div>
             </div>
 
@@ -79,7 +89,11 @@
                                 <div>
                                     <strong class="status-text">{{ entry.action }}</strong>
                                     <div class="text-secondary small department-text">
-                                        {{ entry.performed_by.get_full_name|default:"N/A" }}
+                                        {% if entry.action == "Forwarded" %}
+                                            {{ entry.to_office.get_full_name|default:"N/A" }}
+                                        {% else %}
+                                            {{ entry.performed_by.get_full_name|default:"N/A" }}
+                                        {% endif %}
                                     </div>
                                     {% if entry.note %}
                                         <div class="text-muted small fst-italic remarks-text">"{{ entry.note }}"</div>
@@ -157,5 +171,51 @@
         </div>
     </div>
 
+    <!-- FORWARD DOCUMENT MODAL -->
+    <div class="modal fade" id="forwardModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form method="POST" action="">
+                    {% csrf_token %}
+                    
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title">Forward Document</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+
+                        <!-- Select User/Office -->
+                        <label class="form-label">Forward To (Office/User)</label>
+                        <select name="new_office" class="form-select" required>
+                            <option value="">Select Office</option>
+
+                            {% for department, users in departments.items %}
+                            <optgroup label="{{ department }}">
+                                {% for u in users %}
+                                <option value="{{ u.id }}">
+                                    {{ u.get_full_name }}
+                                </option>
+                                {% endfor %}
+                            </optgroup>
+                            {% endfor %}
+                        </select>
+
+                        <!-- Note -->
+                        <label class="form-label mt-3">Note (Optional)</label>
+                        <textarea name="note" class="form-control" rows="3"></textarea>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Cancel</button>
+                        <button class="btn btn-outline-success">Forward</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+<script src="{% static 'js/document_detail.js' %}"></script>
 
 {% endblock %}

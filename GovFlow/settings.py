@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-zfvxg#4dzocll36rjq(_tg$02fo^#c8y(o*ay^e0uaz$#5y^u_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '192.168.254.108', '127.0.0.1']
 
 LOGIN_REDIRECT_URL = '/create-user/'  # or use reverse_lazy('create_user')
 

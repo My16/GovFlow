@@ -51,18 +51,17 @@ body {
     font-size: 1.2rem;
     font-weight: bold;
     color: #262626;
-    white-space: nowrap;/* prevent line breaks */
-    overflow: hidden;/* hide overflow */
-    text-overflow: ellipsis;/* add ... */
-    max-width: calc(100% - 60px); /* leave space for the logo image */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: calc(100% - 60px);
 }
 
 .logo-link {
     text-decoration: none;
-    color: inherit; /* Keep the text color same as before */
-    display: block; /* Make the whole area clickable */
+    color: inherit;
+    display: block;
 }
-
 
 /* Separator */
 .separator {
@@ -79,7 +78,7 @@ body {
 
 .menu li {
     margin-bottom: 8px;
-    border-radius: 8px; /* Optional, keeps spacing for a11y */
+    border-radius: 8px;
 }
 
 /* Make <a> fill the li and handle layout */
@@ -103,37 +102,35 @@ body {
 
 /* Active menu item */
 .menu li.active a {
-    font-weight: 750; /* or 700 if you prefer */
+    font-weight: 750;
     background-color: #d4edda;
 }
 
 /* Icon inside menu */
 .icon {
     font-size: 18px;
-    color: #262626; /* black icons */
+    color: #262626;
 }
 
 /* --- Main Content Layout --- */
 .main-content {
-    margin-left: 250px; /* Default desktop margin */
+    margin-left: 250px;
     flex: 1;
     padding: 20px;
     transition: margin-left 0.3s ease;
 }
 
-/* FIX: Class applied by JS for desktop collapsed state - use !important */
+/* FIX: Class applied by JS for desktop collapsed state */
 .main-content.sidebar-collapsed-active {
     margin-left: 70px !important; 
 }
 
-
-
 /* --- Sidebar Collapse Button (at the bottom) --- */
 .sidebar-arrow {
-    margin-top: auto; /* pushes button to bottom */
+    margin-top: auto;
     width: 35px;
     height: 35px;
-    background-color: #007a33; /* DOH green */
+    background-color: #007a33;
     color: #ffffff;
     border: none;
     border-radius: 50%;
@@ -142,20 +139,17 @@ body {
     justify-content: center;
     cursor: pointer;
     transition: transform 0.3s, background-color 0.3s;
-    align-self: center; /* center horizontally */
+    align-self: center;
     margin-bottom: 10px;
     box-shadow: 0 3px 6px rgba(0,0,0,0.2);
 }
 
-/* Hover effect */
 .sidebar-arrow:hover {
     background-color: #339966;
     transform: scale(1.1);
 }
 
 /* --- Sidebar Collapse State Styling --- */
-
-/* Sidebar Collapsed */
 .sidebar.collapsed {
     width: 70px; 
     min-width: 70px; 
@@ -164,7 +158,7 @@ body {
 
 /* Logo: only show icon */
 .sidebar.collapsed .logo {
-    justify-content: center; /* Center the icon */
+    justify-content: center;
     padding: 10px 0;
     width: 100%;
     background-color: transparent;
@@ -173,9 +167,9 @@ body {
 
 /* Menu items: only show icons, center them */
 .sidebar.collapsed .menu li a {
-    justify-content: center; /* Center icon inside link */
-    padding: 12px 0;         /* Remove horizontal padding */
-    width: 100%;             /* Full width for hover/click */
+    justify-content: center;
+    padding: 12px 0;
+    width: 100%;
     text-align: center;
 }
 
@@ -185,7 +179,7 @@ body {
     display: none !important; 
 }
 
-/* Optional: show tooltip on hover for accessibility */
+/* Optional: show tooltip on hover */
 .sidebar.collapsed .menu li {
     position: relative;
 }
@@ -193,7 +187,7 @@ body {
 .sidebar.collapsed .menu li:hover::after {
     content: attr(data-tooltip);
     position: absolute;
-    left: 80px; /* outside the collapsed sidebar */
+    left: 80px;
     top: 50%;
     transform: translateY(-50%);
     background: #333;
@@ -204,8 +198,6 @@ body {
     font-size: 0.9rem;
     z-index: 999;
 }
-
-
 
 /* --- Main Header/Navbar Styles --- */
 .main-header {
@@ -221,7 +213,7 @@ body {
     height: 70px; 
 }
 
-/* New: Header Toggle Button */
+/* Header Toggle Button */
 .header-toggle-btn {
     width: 40px;
     height: 40px;
@@ -229,14 +221,12 @@ body {
     color: #262626;
     border: none;
     border-radius: 50%;
-    display: flex;
+    display: none; 
     align-items: center;
     justify-content: center;
     font-size: 1.2rem;
     cursor: pointer;
     transition: background-color 0.2s;
-    /* Hide by default on large screens */
-    display: none; 
 }
 
 .header-toggle-btn:hover {
@@ -283,7 +273,8 @@ body {
 .user-actions {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 1rem;
+    position: relative;
 }
 
 .user-actions .icon-btn {
@@ -308,7 +299,6 @@ body {
     font-size: 1.5rem;
 }
 
-/* Badge for notifications */
 .user-actions .icon-btn .badge {
     position: absolute;
     top: 5px;
@@ -317,14 +307,14 @@ body {
     width: 8px;
     padding: 0;
     border-radius: 50%;
-    background-color: #dc3545; /* Red dot */
+    background-color: #dc3545;
 }
 
 .user-actions .profile-avatar {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background-color: #e9ecef; /* Light gray circle background */
+    background-color: #e9ecef;
     border: 1px solid #dee2e6;
     display: flex;
     align-items: center;
@@ -334,98 +324,7 @@ body {
     cursor: pointer;
 }
 
-/* --- Responsive adjustments --- */
-
-/* Tablets (max-width: 992px) */
-@media (max-width: 992px) { 
-    .sidebar {
-        width: 200px;
-        min-width: 200px;
-    }
-    .main-content {
-        margin-left: 200px; /* Tablet default margin */
-    }
-    
-    /* FIX: Override tablet margin when collapsed */
-    .main-content.sidebar-collapsed-active {
-        margin-left: 70px; 
-    }
-
-    .main-content.sidebar-collapsed-active .header-toggle-btn {
-        display: flex;
-    }
-    .main-header {
-        padding: 15px;
-    }
-}
-
-/* Small tablets / large phones (max-width: 768px) */
-@media (max-width: 768px) { 
-    .sidebar {
-        position: absolute;
-        left: -250px; /* hidden by default */
-        height: 100%;
-        width: 250px; 
-        min-width: 250px;
-    }
-    .sidebar.active {
-        left: 0; /* slide in */
-    }
-    .main-content {
-        margin-left: 0;
-    }
-    /* FIX: Ensure margin is 0 on mobile/tablet */
-    .main-content.sidebar-collapsed-active {
-        margin-left: 0 !important; 
-    }
-    .main-header {
-        height: auto;
-        flex-direction: row; 
-        align-items: center;
-        gap: 15px;
-    }
-    .search-bar-container {
-        max-width: 100%;
-    }
-    /* Always show header toggle button on mobile/tablet */
-    .header-toggle-btn {
-        display: flex;
-    }
-    /* Hide the desktop collapse button on mobile/tablet */
-    .sidebar-arrow {
-        display: none;
-    }
-}
-
-/* Mobile (max-width: 576px) */
-@media (max-width: 576px) { 
-    .sidebar {
-        width: 100%;
-        left: -100%;
-    }
-    .sidebar.active {
-        left: 0;
-    }
-}
-
-/* Sidebar Footer (Logout + Collapse Arrow) */
-.sidebar-footer {
-    margin-top: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding-bottom: 10px;
-}
-
-.sidebar.collapsed .logout-btn span {
-    display: none !important;
-}
-
-/* Profile dropdown positioning */
-.user-actions {
-    position: relative;
-}
-
+/* Profile dropdown */
 .profile-dropdown {
     position: absolute;
     top: 50px;
@@ -445,20 +344,18 @@ body {
     display: flex;
 }
 
-/* Container for avatar + welcome name */
+/* Profile section */
 .profile-section {
     display: flex;
     align-items: center;
-    gap: 0.5rem; /* space between avatar and text */
+    gap: 0.5rem;
 }
 
-/* Avatar styling */
 .profile-avatar i {
     font-size: 1.5rem;
-    color: #198754; /* green accent */
+    color: #198754;
 }
 
-/* Welcome text styling */
 .welcome-name {
     font-weight: 500;
     font-size: 0.9rem;
@@ -468,9 +365,216 @@ body {
     text-overflow: ellipsis;
 }
 
-/* Header actions spacing */
-.user-actions {
+/* --- Responsive adjustments --- */
+@media (max-width: 992px) { 
+    .sidebar { width: 200px; min-width: 200px; }
+    .main-content { margin-left: 200px; }
+    .main-content.sidebar-collapsed-active { margin-left: 70px; }
+    .header-toggle-btn { display: flex; }
+    .main-header { padding: 15px; }
+}
+
+@media (max-width: 768px) { 
+    .sidebar { position: absolute; left: -250px; height: 100%; }
+    .sidebar.active { left: 0; }
+    .main-content { margin-left: 0; }
+    .main-content.sidebar-collapsed-active { margin-left: 0 !important; }
+    .main-header { height: auto; flex-direction: row; gap: 15px; }
+    .search-bar-container { max-width: 100%; }
+    .header-toggle-btn { display: flex; }
+    .sidebar-arrow { display: none; }
+}
+
+@media (max-width: 576px) { 
+    .sidebar { width: 100%; left: -100%; }
+    .sidebar.active { left: 0; }
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 10px;
+}
+
+.sidebar.collapsed .logout-btn span { display: none !important; }
+
+/* --- Receive Document & QR Modals --- */
+.receive-modal {
+    background-color: #ffffff;
+    color: #262626;
+    border-radius: 1rem;
+    border: 1px solid #dbdbdb;
+    overflow: hidden;
+}
+
+.receive-modal .modal-header {
+    background-color: #f8f9fa;
+    color: #262626;
+    border-bottom: 1px solid #cccccc;
+}
+
+.receive-modal .modal-body {
+    background-color: #ffffff;
+    color: #262626;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+}
+
+.receive-modal input {
+    border-radius: 0.5rem;
+    border: 1px solid #ced4da;
+    background-color: #f0f2f5;
+    color: #343a40;
+}
+
+.receive-modal input::placeholder {
+    color: #6c757d;
+}
+
+/* Manual Entry Modal Custom Width */
+#manualEntryModal .modal-dialog {
+    max-width: 450px; /* smaller width */
+    margin: 1.75rem auto; /* keep it centered */
+}
+
+
+.receive-modal button#manualInputBtn {
+    border-radius: 0.5rem;
+    background-color: #007a33;
+    color: #ffffff;
+    border: none;
+    transition: background-color 0.2s;
+}
+
+.receive-modal button#manualInputBtn:hover {
+    background-color: #339966;
+}
+
+.receive-modal .modal-footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid #cccccc;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+    color: #6c757d;
+    font-size: 0.85rem;
+}
+
+/* QR Scanner */
+.qr-scanner {
+    width: 100%;
+    height: 300px;
+    aspect-ratio: 1 / 1;
+    border: 2px solid #ced4da;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    position: relative;
+}
+.qr-scanner video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Manual Entry Modal */
+.receive-modal.manual-entry {
+    background-color: #ffffff;
+    color: #262626;
+    border-radius: 1rem;
+    border: 1px solid #dbdbdb;
+    overflow: hidden;
+    width: 90%;
+    max-width: 450px;
+}
+
+.receive-modal.manual-entry .modal-header {
+    background-color: #198754;
+    color: #ffffff;
+    border-bottom: 1px solid #145c36; 
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
     display: flex;
     align-items: center;
-    gap: 1rem; /* spacing between bell, profile-section, etc. */
+    gap: 0.5rem;
 }
+
+.receive-modal.manual-entry .modal-header h5 { margin: 0; font-weight: 600; }
+.receive-modal.manual-entry .btn-close { filter: invert(1); }
+
+.receive-modal.manual-entry .modal-body {
+    background-color: #ffffff;
+    color: #262626;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 0.5rem;
+    padding: 1rem;
+    min-height: auto;
+}
+
+.receive-modal.manual-entry input.form-control {
+    border-radius: 0.5rem;
+    border: 1px solid #ced4da;
+    background-color: #f0f2f5;
+    color: #343a40;
+    height: 38px;
+    font-size: 0.95rem;
+}
+
+.receive-modal.manual-entry input::placeholder {
+    color: #6c757d;
+    text-transform: uppercase;
+}
+
+.receive-modal.manual-entry .input-group-text {
+    background-color: #ffffff;
+    border-radius: 0.5rem 0 0 0.5rem;
+    color: #6c757d;
+}
+
+.receive-modal.manual-entry button.btn {
+    height: 38px;
+    font-size: 0.9rem;
+    border-radius: 0.5rem;
+    padding: 0 0.8rem;
+}
+
+.receive-modal.manual-entry button.btn-success {
+    background-color: #198754;
+    border: none;
+    color: #ffffff;
+}
+
+.receive-modal.manual-entry button.btn-success:hover {
+    background-color: #145c36;
+}
+
+.receive-modal.manual-entry button.btn-outline-secondary {
+    color: #495057;
+    border-color: #ced4da;
+}
+
+.receive-modal.manual-entry button.btn-outline-secondary:hover {
+    background-color: #f8f9fa;
+}
+
+.receive-modal.manual-entry .modal-footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid #cccccc;
+    padding: 0.5rem 1rem;
+    flex-direction: column;
+    gap: 0.25rem;
+    text-align: center;
+    color: #6c757d;
+    font-size: 0.8rem;
+}
+
+.receive-modal.manual-entry .form-label { margin-bottom: 0.25rem; }
+.receive-modal.manual-entry .form-text { margin-bottom: 0.5rem; }
