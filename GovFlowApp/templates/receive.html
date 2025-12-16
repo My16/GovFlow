@@ -89,7 +89,13 @@
                                 </span>
                             </div>
                             <h6 class="fw-bold text-truncate mb-1">{{ doc.title }}</h6>
-                            <p class="mb-0 text-muted text-truncate">From: {{ doc.current_office.get_full_name|default:"N/A" }}</p>
+                            <p class="mb-0 text-muted text-truncate fst-italic">From: {{ doc.current_office.get_full_name|default:"N/A" }}
+                                {% if doc.latest_forwarded_at %}
+                                    · <span class="small fst-italic">
+                                        {{ doc.latest_forwarded_at|date:"m/d/Y h:i A" }}
+                                    </span>
+                                {% endif %}
+                            </p>
                         </div>
 
                         <!-- Direct Receive Form -->
@@ -106,7 +112,7 @@
                 <div class="p-5 text-center text-muted">
                     <div class="mx-auto bg-light rounded-circle d-flex align-items-center justify-content-center"
                         style="width: 60px; height: 60px;">
-                        <i class="bi bi-check2-lg fs-2 text-secondary"></i>
+                        <i class="bi bi-inboxes fs-2 text-secondary"></i>
                     </div>
                     <p class="mt-3">No documents are currently in transit.</p>
                 </div>

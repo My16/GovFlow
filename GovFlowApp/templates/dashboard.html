@@ -106,7 +106,9 @@
                             <button class="btn btn-sm btn-outline-primary action-btn" data-document-id="{{ doc.pk }}" data-bs-toggle="modal" data-bs-target="#forwardModal" {% if doc.current_office != request.user or doc.status == "In Transit" %} disabled{% endif %}><i class="bi bi-send-fill"></i></button>
                             <!-- qr code button -->
                             {% if doc.qr_code %}
-                            <a href="" target="_blank" class="btn btn-sm btn-outline-secondary action-btn">
+                            <a class="btn btn-sm btn-outline-secondary action-btn" data-bs-toggle="modal"
+                                data-bs-target="#routingSlipModal"
+                                data-document-id="{{ doc.id }}">
                                 <i class="bi bi-qr-code"></i>
                             </a>
                             {% endif %}

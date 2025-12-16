@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('', views.loginpage, name='loginpage'),
@@ -11,9 +13,12 @@ urlpatterns = [
     path('documents/new/', views.new_document, name='new_document'),
     path('documents/<int:pk>/', views.document_detail, name='document_detail'),
     path("delete/<int:pk>/", views.delete_document, name="delete_document"),
-    path('documents/<int:pk>/pdf/', views.document_pdf, name='document_pdf'),
     path('documents/<int:pk>/forward/', views.forward_document, name='forward_document'),
     path('documents/receive/', views.receive_document, name='receive_document'),
     path("receive/", views.receive_page, name="receive_page"),
     path("receive/submit/", views.receive_document, name="receive_document"),
+    path('documents/routing-slip/<int:pk>/', views.routing_slip_partial, name='routing_slip_partial'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

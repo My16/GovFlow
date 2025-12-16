@@ -141,3 +141,51 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 });
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    const routingModal = document.getElementById('routingSlipModal');
+    const modalBody = routingModal.querySelector('.modal-body');
+
+    routingModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const documentId = button.getAttribute('data-document-id');
+
+        if (!documentId) return;
+
+        // Fetch the partial via AJAX
+        fetch(`/documents/routing-slip/${documentId}/`)
+            .then(response => response.text())
+            .then(html => {
+                modalBody.innerHTML = html;
+            })
+            .catch(err => {
+                modalBody.innerHTML = '<p class="text-danger p-3">Error loading routing slip.</p>';
+                console.error(err);
+            });
+    });
+});
+
+function printRoutingSlip() {
+    const slip = document.getElementById('routing-slip').outerHTML;
+    const styles = document.querySelectorAll('style, link[rel="stylesheet"]');
+    let styleHTML = '';
+    styles.forEach(s => { styleHTML += s.outerHTML; });
+
+    const printWindow = window.open('', '', 'width=800,height=600');
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Document Routing Slip</title>
+            ${styleHTML}
+        </head>
+        <body>
+            ${slip}
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
+}

@@ -10,6 +10,9 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
         <link rel="stylesheet" href="{% static 'css/homepage.css' %}">
+
+        <!-- Favicon / Logo -->
+        <link rel="icon" href="{% static 'img/mharsmc.png' %}" type="image/png">
     </head>
 
     <body>
@@ -205,6 +208,30 @@
             </div>
             {% endfor %}
         </div>
+
+        <!-- Routing Slip Modal -->
+        <div class="modal fade" id="routingSlipModal" tabindex="-1">
+            <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">Document Routing Slip</h5>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body p-0">
+                    {% include "documents/partials/routing_slip.html" %}
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    <button onclick="printRoutingSlip()" class="btn btn-outline-success">
+                        <i class="bi bi-printer"></i> Print
+                    </button>
+                </div>
+                </div>
+            </div>
+        </div>
+
 
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

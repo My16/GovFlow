@@ -6,6 +6,9 @@ from django.utils import timezone
 from django.core.files import File
 from django.db.models.signals import pre_save, post_delete, post_save
 from django.dispatch import receiver
+from PIL import Image
+from django.conf import settings
+import os
 
 
 class UserProfile(models.Model):
@@ -84,27 +87,41 @@ class Document(models.Model):
 
         qr = qrcode.QRCode(
             version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            error_correction=qrcode.constants.ERROR_CORRECT_H,
             box_size=10,
             border=4,
         )
         qr.add_data(qr_data)
         qr.make(fit=True)
-        img = qr.make_image(fill_color="black", back_color="white")
+        img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
 
+        # Optional: Add logo in the center
+        logo_path = os.path.join(settings.BASE_DIR, 'GovFlowApp', 'static', 'img', 'mharsmc.png')
+        if os.path.exists(logo_path):
+            logo = Image.open(logo_path)
+            # Resize logo
+            qr_width, qr_height = img.size
+            factor = 4  # logo size ratio
+            logo_size = qr_width // factor
+            logo.thumbnail((logo_size, logo_size), Image.Resampling.LANCZOS)
+            # Center the logo
+            pos = ((qr_width - logo.width) // 2, (qr_height - logo.height) // 2)
+            img.paste(logo, pos, mask=logo if logo.mode == 'RGBA' else None)
+
+
+        # Save QR to memory
         buffer = BytesIO()
         img.save(buffer, format="PNG")
         file_name = f"QR_{self.tracking_id}.png"
 
-        # Delete old QR code if exists to ensure overwrite
+        # Delete old QR if exists
         if self.qr_code:
             self.qr_code.delete(save=False)
 
-        # Save the new QR code
+        # Save new QR
         self.qr_code.save(file_name, File(buffer), save=False)
         buffer.close()
 
-        # Save the instance
         super().save(*args, **kwargs)
 
 

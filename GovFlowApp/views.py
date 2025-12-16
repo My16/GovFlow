@@ -3,16 +3,11 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import UserProfileForm
-from .models import Document
+from .models import Document, DocumentHistory
 from django.core.paginator import Paginator
-from django.http import HttpResponse
-from django.template.loader import get_template
-from xhtml2pdf import pisa
-import base64, os
-from django.conf import settings
 from django.contrib.auth.models import User
 from collections import defaultdict
-from django.db.models import Q
+from django.db.models import Q, OuterRef, Subquery
 
 # Create your views here.
 
@@ -217,48 +212,6 @@ def document_detail(request, pk):
     return render(request, "document_detail.html", context)
 
 
-def document_pdf(request, pk):
-    document = get_object_or_404(Document, pk=pk)
-    template_path = 'document_pdf.html'
-
-    # Convert QR code to base64
-    qr_base64 = ""
-    if document.qr_code:
-        with open(document.qr_code.path, "rb") as qr_file:
-            qr_bytes = qr_file.read()
-            qr_base64 = base64.b64encode(qr_bytes).decode("utf-8")
-
-     # Convert logos to Base64
-    mharsmc_logo_path = r"D:\Code\GovFlow\GovFlowApp\static\img\mharsmc.png"
-    doh_logo_path = r"D:\Code\GovFlow\GovFlowApp\static\img\doh_logo.png"
-
-    def img_to_base64(path):
-        with open(path, "rb") as f:
-            return base64.b64encode(f.read()).decode("utf-8")
-
-    mharsmc_logo_base64 = img_to_base64(mharsmc_logo_path)
-    doh_logo_base64 = img_to_base64(doh_logo_path)
-
-    context = {
-        'document': document,
-        'qr_base64': qr_base64,
-        'mharsmc_logo_base64': mharsmc_logo_base64,
-        'doh_logo_base64': doh_logo_base64,
-    }
-
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'inline; filename="document_{document.tracking_id}.pdf"'
-
-    template = get_template(template_path)
-    html = template.render(context)
-
-    pisa_status = pisa.CreatePDF(html, dest=response)
-    if pisa_status.err:
-        return HttpResponse('Error generating PDF <pre>' + html + '</pre>')
-
-    return response
-
-
 @login_required
 def forward_document(request, pk):
     document = get_object_or_404(Document, pk=pk)
@@ -285,17 +238,37 @@ def forward_document(request, pk):
 
 @login_required(login_url='loginpage')
 def receive_page(request):
-    # Expected arrivals: documents forwarded to this user but NOT marked as received
-    incoming = Document.objects.filter(
-        history__action="Forwarded",
-        history__to_office=request.user,
-        received_at__isnull=True
-    ).distinct()
+    # Latest Forwarded action per document
+    latest_forward_subquery = DocumentHistory.objects.filter(
+        document=OuterRef('pk'),
+        action="Forwarded"
+    ).order_by('-timestamp')
+
+    # Latest Received action per document
+    latest_received_subquery = DocumentHistory.objects.filter(
+        document=OuterRef('pk'),
+        action="Received"
+    ).order_by('-timestamp')
+
+    incoming = Document.objects.annotate(
+        latest_forwarded_to_id=Subquery(latest_forward_subquery.values('to_office')[:1]),
+        latest_forwarded_at=Subquery(latest_forward_subquery.values('timestamp')[:1]),
+        latest_received_to_id=Subquery(latest_received_subquery.values('to_office')[:1])
+    ).filter(
+        latest_forwarded_to_id=request.user.id  # compare with ID
+    ).exclude(
+        latest_received_to_id=request.user.id
+    )
 
     context = {
         "incoming": incoming
     }
     return render(request, "receive.html", context)
+
+
+def routing_slip_partial(request, pk):
+    doc = get_object_or_404(Document, pk=pk)
+    return render(request, 'documents/partials/routing_slip.html', {'document': doc})
 
 
 @login_required

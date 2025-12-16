@@ -201,12 +201,6 @@
     border: 1px solid #bee5eb;
 }
 
-.in-progress-tag {
-    background-color: #fff3cd;
-    color: #856404;
-    border: 1px solid #ffeeba;
-}
-
 .document-actions-container {
     /* Gray background for the action bar */
     background-color: #f8f9fa; 
@@ -218,4 +212,16 @@
     border-bottom-right-radius: 12px; 
     /* Add a subtle top border to separate it from the content above */
     border-top: 1px solid #e0e0e0; 
+}
+
+.pending-tag {
+    background-color: #fff3cd;   /* Yellow */
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+
+.in-transit-tag {
+    background-color: #d1ecf1;   /* Blue */
+    color: #0c5460;
+    border: 1px solid #bee5eb;
 }
