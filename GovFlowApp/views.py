@@ -238,32 +238,25 @@ def forward_document(request, pk):
 
 @login_required(login_url='loginpage')
 def receive_page(request):
-    # Latest Forwarded action per document
-    latest_forward_subquery = DocumentHistory.objects.filter(
-        document=OuterRef('pk'),
-        action="Forwarded"
-    ).order_by('-timestamp')
 
-    # Latest Received action per document
-    latest_received_subquery = DocumentHistory.objects.filter(
-        document=OuterRef('pk'),
-        action="Received"
-    ).order_by('-timestamp')
+    latest_forward = DocumentHistory.objects.filter(
+        document=OuterRef("pk"),
+        action="Forwarded"
+    ).order_by("-timestamp")
 
     incoming = Document.objects.annotate(
-        latest_forwarded_to_id=Subquery(latest_forward_subquery.values('to_office')[:1]),
-        latest_forwarded_at=Subquery(latest_forward_subquery.values('timestamp')[:1]),
-        latest_received_to_id=Subquery(latest_received_subquery.values('to_office')[:1])
+        forwarded_to=Subquery(latest_forward.values("to_office")[:1]),
+        forwarded_at=Subquery(latest_forward.values("timestamp")[:1]),
     ).filter(
-        latest_forwarded_to_id=request.user.id  # compare with ID
-    ).exclude(
-        latest_received_to_id=request.user.id
+        forwarded_to=request.user,
+        status="In Transit"
     )
 
     context = {
         "incoming": incoming
     }
     return render(request, "receive.html", context)
+
 
 
 def routing_slip_partial(request, pk):
