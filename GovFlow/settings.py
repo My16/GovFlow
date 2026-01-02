@@ -143,3 +143,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+
+TEMPLATES[0]["OPTIONS"]["context_processors"] += [
+    "GovFlowApp.context_processors.notifications",
+]

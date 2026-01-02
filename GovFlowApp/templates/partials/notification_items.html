@@ -1,0 +1,14 @@
+{% if notifications %}
+    {% for n in notifications %}
+    <li>
+        <a class="dropdown-item small" href="{% url 'mark_notification_read' n.id %}">
+            {{ n.message }}<br>
+            <span class="text-muted small">{{ n.created_at|timesince }} ago</span>
+        </a>
+    </li>
+    {% endfor %}
+{% else %}
+    <li class="dropdown-item text-muted text-center">
+        No new notifications
+    </li>
+{% endif %}

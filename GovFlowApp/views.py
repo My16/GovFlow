@@ -3,13 +3,23 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import UserProfileForm
-from .models import Document, DocumentHistory
+from .models import Document, DocumentHistory, Notification
 from django.core.paginator import Paginator
 from django.contrib.auth.models import User
 from collections import defaultdict
 from django.db.models import Q, OuterRef, Subquery
+from django.http import JsonResponse
+from django.template.loader import render_to_string
 
 # Create your views here.
+
+def notify(user, message, url=""):
+    if user:
+        Notification.objects.create(
+            recipient=user,
+            message=message,
+            url=url
+        )
 
 def create_user(request):
     if request.method == "POST":
@@ -155,11 +165,17 @@ def new_document(request):
         description = request.POST.get("description")
 
         # current_office defaults to sender in models.py, no need to get from form
-        Document.objects.create(
+        document = Document.objects.create(
             title=title,
             sender=request.user,
             priority=priority,
             description=description
+        )
+
+        notify(
+            request.user,
+            f"Document {document.tracking_id} was created.",
+            url=f"/documents/{document.pk}/"
         )
 
         messages.success(request, "Document registered successfully.")
@@ -227,6 +243,18 @@ def forward_document(request, pk):
             new_office=new_office_user,
             forwarded_by=request.user,
             note=note
+        )
+
+        # Send notifications
+        notify(
+            new_office_user,
+            f"Document {document.tracking_id} was forwarded to you.",
+            url=f"/documents/{document.pk}/"
+        )
+
+        notify(
+            document.sender,
+            f"Your document {document.tracking_id} was forwarded to {new_office_user.get_full_name()}."
         )
 
         messages.success(request, "Document forwarded successfully.")
@@ -310,5 +338,44 @@ def receive_document(request):
         note="Received via QR/manual entry"
     )
 
+    # Send notifications
+    notify(
+        document.sender,
+        f"Document {document.tracking_id} was received by {request.user.get_full_name()}."
+    )
+
     messages.success(request, f"Document {document.tracking_id} received successfully.")
     return redirect("receive_page")
+
+
+# notification starts here
+@login_required
+def mark_notification_read(request, pk):
+    notification = get_object_or_404(
+        Notification, pk=pk, recipient=request.user
+    )
+    notification.is_read = True
+    notification.save()
+
+    if notification.url:
+        return redirect(notification.url)
+
+    return redirect(request.META.get("HTTP_REFERER", "dashboard"))
+
+@login_required
+def notifications_api(request):
+    notifications = Notification.objects.filter(
+        recipient=request.user,
+        is_read=False
+    ).order_by("-created_at")[:5]
+
+    html = render_to_string(
+        "partials/notification_items.html",
+        {"notifications": notifications},
+        request=request
+    )
+
+    return JsonResponse({
+        "count": notifications.count(),
+        "html": html
+    })

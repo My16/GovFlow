@@ -73,10 +73,37 @@
                 </div>
 
                 <div class="user-actions">
-                    <button class="icon-btn position-relative">
-                        <i class="bi bi-bell-fill"></i>
-                        <span class="badge"></span>
-                    </button>
+
+                    <!-- notification here -->
+                    <div class="dropdown">
+                        <button class="icon-btn position-relative" data-bs-toggle="dropdown">
+                            <i class="bi bi-bell-fill"></i>
+                            <span class="badge bg-danger rounded-pill notification-badge position-absolute" style="display:none;">
+                                {% if notification_count %}{{ notification_count }}{% else %}0{% endif %}
+                            </span>
+                        </button>
+
+
+                        <ul id="notification-list" class="dropdown-menu dropdown-menu-end shadow notification-dropdown" style="width:320px; padding:0;">
+                            {% if notifications %}
+                                {% for n in notifications %}
+                                <li>
+                                    <a class="dropdown-item small" href="{% url 'mark_notification_read' n.id %}">
+                                        {{ n.message }}<br>
+                                        <span class="text-muted small">{{ n.created_at|timesince }} ago</span>
+                                    </a>
+                                </li>
+                                {% endfor %}
+                            {% else %}
+                                <li class="dropdown-item text-muted text-center">
+                                    No new notifications
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+
+
+
 
                     <div class="profile-section d-flex align-items-center gap-2" id="'profileToggle">
                         <div class="profile-avatar">

@@ -189,3 +189,33 @@ function printRoutingSlip() {
     printWindow.print();
     printWindow.close();
 }
+
+// notification api
+function loadNotifications() {
+    fetch("/notifications/api/")
+        .then(response => response.json())
+        .then(data => {
+            const badge = document.querySelector(".notification-badge");
+            const list = document.querySelector("#notification-list");
+
+            // Update count
+            if (data.count > 0) {
+                badge.textContent = data.count;
+                badge.style.display = "inline-flex";
+            } else {
+                badge.style.display = "none";
+            }
+
+            // Update dropdown
+            if (list) {
+                list.innerHTML = data.html;
+            }
+        })
+        .catch(err => console.error(err));
+}
+
+// Load immediately
+loadNotifications();
+
+// Refresh every 5 seconds
+setInterval(loadNotifications, 5000);

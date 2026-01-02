@@ -90,9 +90,9 @@
                             </div>
                             <h6 class="fw-bold text-truncate mb-1">{{ doc.title }}</h6>
                             <p class="mb-0 text-muted text-truncate fst-italic">From: {{ doc.current_office.get_full_name|default:"N/A" }}
-                                {% if doc.latest_forwarded_at %}
+                                {% if doc.forwarded_at %}
                                     · <span class="small fst-italic">
-                                        {{ doc.latest_forwarded_at|date:"m/d/Y h:i A" }}
+                                        {{ doc.forwarded_at|date:"m/d/Y h:i A" }}
                                     </span>
                                 {% endif %}
                             </p>

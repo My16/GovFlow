@@ -578,3 +578,59 @@ body {
 
 .receive-modal.manual-entry .form-label { margin-bottom: 0.25rem; }
 .receive-modal.manual-entry .form-text { margin-bottom: 0.5rem; }
+
+
+/* notification css here */
+
+/* Notification badge (round number) */
+.notification-badge {
+    top: -5px;
+    right: -5px;
+    min-width: 22px;
+    height: 22px;
+    font-size: 12px;
+    padding: 0 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+/* Notification dropdown container */
+/* Notification dropdown container */
+.notification-dropdown {
+    width: 500px !important;     /* force width */
+    max-width: 90vw;             /* responsive max width */
+    max-height: 400px;           /* height limit */
+    overflow-y: auto;            /* vertical scroll if needed */
+    overflow-x: hidden;          /* hide horizontal scroll */
+    word-wrap: break-word;  
+    padding: 0;
+}
+
+/* Optional: make dropdown responsive */
+@media (max-width: 600px) {
+    .notification-dropdown {
+        width: 90vw !important;  /* shrink to fit small screens */
+    }
+}
+
+
+/* Each notification item */
+.notification-dropdown li {
+    white-space: normal;    /* allow wrapping */
+}
+
+/* Notification link inside dropdown */
+.notification-dropdown li a.dropdown-item {
+    white-space: normal;      /* allow wrapping */
+    overflow-wrap: anywhere;  /* wrap long words */
+    text-overflow: unset;     /* prevent ellipsis */
+    transition: background-color 0.2s ease;
+}
+
+/* Hover effect: green theme */
+.notification-dropdown li a.dropdown-item:hover {
+    background-color: #128146; /* Bootstrap green */
+    color: white;
+}

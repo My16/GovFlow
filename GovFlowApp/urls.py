@@ -18,6 +18,8 @@ urlpatterns = [
     path("receive/", views.receive_page, name="receive_page"),
     path("receive/submit/", views.receive_document, name="receive_document"),
     path('documents/routing-slip/<int:pk>/', views.routing_slip_partial, name='routing_slip_partial'),
+    path("notifications/read/<int:pk>/", views.mark_notification_read, name="mark_notification_read"),
+    path("notifications/api/", views.notifications_api, name="notifications_api"),
 ]
 
 if settings.DEBUG:
