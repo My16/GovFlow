@@ -23,9 +23,19 @@
                         <i class="bi bi-download me-1"></i> Download QR Slip
                     </button>
 
-                    <button class="btn btn-rose flex-grow-0">
+                    <!-- <button class="btn btn-rose flex-grow-0">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> Return
+                    </button> -->
+
+                    <button class="btn btn-rose flex-grow-0"
+                            data-bs-toggle="modal"
+                            data-bs-target="#returnModal"
+                            {% if document.current_office != request.user or not return_target %}
+                                disabled
+                            {% endif %}>
                         <i class="bi bi-arrow-counterclockwise me-1"></i> Return
                     </button>
+
 
                     <button class="btn btn-primary flex-grow-0"
                             {% if document.current_office != request.user or document.status == "In Transit" %}
@@ -216,6 +226,59 @@
             </div>
         </div>
     </div>
+
+    <!-- RETURN DOCUMENT MODAL -->
+    <div class="modal fade" id="returnModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <form method="POST" action="{% url 'return_document' document.pk %}">
+                    {% csrf_token %}
+
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>
+                            Return Document
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+
+                        <!-- Return To -->
+                        <label class="form-label">Return To</label>
+                        <input type="text"
+                            class="form-control"
+                            value="{{ return_target.get_full_name }}"
+                            readonly>
+
+                        <!-- Note -->
+                        <label class="form-label mt-3">Reason for Return</label>
+                        <textarea name="note"
+                                class="form-control"
+                                rows="3"
+                                placeholder="Enter reason for returning this document..."></textarea>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button"
+                                class="btn btn-outline-secondary"
+                                data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                                class="btn btn-outline-success">
+                            Confirm Return
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+
 
 <script src="{% static 'js/document_detail.js' %}"></script>
 

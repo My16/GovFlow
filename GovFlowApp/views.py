@@ -10,6 +10,7 @@ from collections import defaultdict
 from django.db.models import Q, OuterRef, Subquery
 from django.http import JsonResponse
 from django.template.loader import render_to_string
+from django.urls import reverse
 
 # Create your views here.
 
@@ -216,6 +217,14 @@ def document_detail(request, pk):
         if hasattr(u, "userprofile") and u.userprofile.department:
             departments[u.userprofile.department].append(u)
 
+    # Determine return target for modal display
+    forwards = document.history.filter(action="Forwarded").order_by("-timestamp")
+
+    if forwards.exists():
+        prev_forward = forwards[1] if forwards.count() > 1 else None
+        return_target = prev_forward.to_office if prev_forward else document.sender
+    else:
+        return_target = None
 
     history = document.history.order_by("-timestamp")
 
@@ -223,6 +232,7 @@ def document_detail(request, pk):
         "document": document,
         "history": history,
         "departments": dict(departments),
+        "return_target": return_target,
     }
 
     return render(request, "document_detail.html", context)
@@ -238,6 +248,11 @@ def forward_document(request, pk):
 
         new_office_user = get_object_or_404(User, id=new_office_id)
 
+        # Prevent forwarding to self
+        if new_office_user == request.user:
+            messages.error(request, "You cannot forward the document to yourself.")
+            return redirect("document_detail", pk=pk)
+
         # Use model method you already created
         document.forward_to(
             new_office=new_office_user,
@@ -245,17 +260,21 @@ def forward_document(request, pk):
             note=note
         )
 
-        # Send notifications
-        notify(
-            new_office_user,
-            f"Document {document.tracking_id} was forwarded to you.",
-            url=f"/documents/{document.pk}/"
-        )
+        # Notify the receiving office (if not self)
+        if new_office_user != request.user:
+            notify(
+                new_office_user,
+                f"Document {document.tracking_id} was forwarded to you.",
+                url=reverse("receive_page")
+            )
 
-        notify(
-            document.sender,
-            f"Your document {document.tracking_id} was forwarded to {new_office_user.get_full_name()}."
-        )
+        # Notify sender if it's not the same as the new office
+        if document.sender != new_office_user:
+            notify(
+                document.sender,
+                f"Your document {document.tracking_id} was forwarded to {new_office_user.get_full_name()}."
+            )
+
 
         messages.success(request, "Document forwarded successfully.")
         return redirect("document_detail", pk=pk)
@@ -263,28 +282,97 @@ def forward_document(request, pk):
     messages.error(request, "Invalid request.")
     return redirect("document_detail", pk=pk)
 
+@login_required
+def return_document(request, pk):
+    document = get_object_or_404(Document, pk=pk)
 
-@login_required(login_url='loginpage')
-def receive_page(request):
+    if request.method != "POST":
+        messages.error(request, "Invalid request.")
+        return redirect("document_detail", pk=pk)
 
-    latest_forward = DocumentHistory.objects.filter(
-        document=OuterRef("pk"),
-        action="Forwarded"
-    ).order_by("-timestamp")
+    # Only current holder can return
+    if document.current_office != request.user:
+        messages.error(request, "You are not authorized to return this document.")
+        return redirect("document_detail", pk=pk)
 
-    incoming = Document.objects.annotate(
-        forwarded_to=Subquery(latest_forward.values("to_office")[:1]),
-        forwarded_at=Subquery(latest_forward.values("timestamp")[:1]),
-    ).filter(
-        forwarded_to=request.user,
-        status="In Transit"
+    note = request.POST.get("note", "").strip()
+
+    # Find the last action that sent this document to the current office
+    last_received_action = document.history.filter(
+        to_office=request.user,
+        action__in=["Forwarded", "Returned"]
+    ).order_by("-timestamp").first()
+
+    if not last_received_action:
+        messages.error(request, "Cannot determine where to return this document.")
+        return redirect("document_detail", pk=pk)
+
+    return_office = last_received_action.from_office or document.sender
+
+    # Update document
+    document.current_office = return_office
+    document.status = "In Transit"
+    document.save()
+
+    # Log history
+    DocumentHistory.objects.create(
+        document=document,
+        action="Returned",
+        from_office=request.user,
+        to_office=return_office,
+        performed_by=request.user,
+        note=note or "Returned to previous office"
     )
 
-    context = {
-        "incoming": incoming
-    }
-    return render(request, "receive.html", context)
+    # Notify receiving office
+    if return_office != request.user:
+        notify(
+            return_office,
+            f"Document {document.tracking_id} was returned to you.",
+            url=reverse("receive_page")
+        )
 
+    # Notify sender if sender is not the return office (to avoid double)
+    if document.sender != return_office:
+        notify(
+            document.sender,
+            f"Document {document.tracking_id} was returned to {return_office.get_full_name()}."
+        )
+
+    messages.success(request, "Document returned successfully.")
+    return redirect("document_detail", pk=pk)
+
+
+
+@login_required
+def receive_page(request):
+    # Get the latest "Forwarded" or "Returned" action to this user
+    latest_routing_subquery = DocumentHistory.objects.filter(
+        document=OuterRef('pk'),
+        action__in=["Forwarded", "Returned"],
+        to_office=request.user
+    ).order_by('-timestamp')
+
+    # Annotate document with latest routing info
+    incoming = Document.objects.annotate(
+        latest_routing_action=Subquery(latest_routing_subquery.values('action')[:1]),
+        latest_routing_from_office_id=Subquery(latest_routing_subquery.values('from_office')[:1]),
+        latest_routing_timestamp=Subquery(latest_routing_subquery.values('timestamp')[:1])
+    ).filter(
+        status="In Transit",  # only documents currently "in transit"
+        latest_routing_from_office_id__isnull=False
+    ).order_by('-latest_routing_timestamp')
+
+    # Fetch actual User objects
+    user_ids = [doc.latest_routing_from_office_id for doc in incoming]
+    users_map = {u.id: u for u in User.objects.filter(id__in=user_ids)}
+
+    # Attach User objects to documents
+    for doc in incoming:
+        doc.forwarded_from_office = users_map.get(doc.latest_routing_from_office_id)
+
+    context = {"incoming": incoming}
+    return render(request, "receive.html", context)
 
 
 def routing_slip_partial(request, pk):
@@ -315,33 +403,56 @@ def receive_document(request):
         messages.warning(request, f"Document {document.tracking_id} has already been received by your office.")
         return redirect("receive_page")
 
-    # Get the last forward action from history
-    last_forward = document.history.filter(action="Forwarded").order_by("-timestamp").first()
+   # Get the last routing action (Forwarded OR Returned)
+    last_routing = document.history.filter(
+        action__in=["Forwarded", "Returned"]
+    ).order_by("-timestamp").first()
 
-    if not last_forward:
-        messages.error(request, "This document has not been forwarded to any office yet.")
+    if not last_routing:
+        messages.error(request, "This document has not been routed to any office yet.")
         return redirect("receive_page")
 
-    # Check if the logged-in user belongs to the forwarded office
-    if request.user != last_forward.to_office:
+    # Check if the logged-in user is the intended receiver
+    if request.user != last_routing.to_office:
         messages.error(
             request,
             f"You are not authorized to receive this document. "
-            f"This document is assigned to {last_forward.to_office.get_full_name()}."
+            f"This document is assigned to {last_routing.to_office.get_full_name()}."
         )
         return redirect("receive_page")
 
-    # Mark as received
-    document.mark_received(
-        receiving_office=request.user,
-        received_by=request.user,
+    
+    # Suppose this is after receiving the document
+    document_detail_url = reverse('document_detail', kwargs={'pk': document.pk})
+
+    # Get who forwarded the document here
+    last_action = document.history.filter(
+        to_office=request.user,
+        action__in=["Forwarded", "Returned"]
+    ).order_by("-timestamp").first()
+
+    from_office = last_action.from_office if last_action else None
+
+    # Update the document
+    document.current_office = request.user
+    document.status = "Received"
+    document.save()
+
+    # Log history properly
+    DocumentHistory.objects.create(
+        document=document,
+        action="Received",
+        from_office=from_office,
+        to_office=request.user,
+        performed_by=request.user,
         note="Received via QR/manual entry"
     )
-
+    
     # Send notifications
     notify(
         document.sender,
-        f"Document {document.tracking_id} was received by {request.user.get_full_name()}."
+        f"Document {document.tracking_id} was received by {request.user.get_full_name()}.",
+        url=document_detail_url
     )
 
     messages.success(request, f"Document {document.tracking_id} received successfully.")
