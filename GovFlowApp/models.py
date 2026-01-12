@@ -45,6 +45,7 @@ class Document(models.Model):
         ("Received", "Received"),
         ("Returned", "Returned"),
         ("Archived", "Archived"),
+        ("Completed", "Completed"),
     ]
 
     tracking_id = models.CharField(max_length=15, unique=True, editable=False)
@@ -123,6 +124,28 @@ class Document(models.Model):
         buffer.close()
 
         super().save(*args, **kwargs)
+
+    
+    def mark_completed(self, completed_by=None, note=None):
+        """
+        Mark the document as completed.
+        - status changes to 'Completed'
+        - DocumentHistory logs the action
+        """
+        old_office = self.current_office  # keep track of current office
+
+        self.status = "Completed"
+        self.save(update_fields=["status"])
+
+        DocumentHistory.objects.create(
+            document=self,
+            action="Completed",
+            from_office=old_office,  # the office completing it
+            to_office=old_office, # log which office completed it
+            note=note,
+            performed_by=completed_by
+        )
+
 
 
     # Forward document to another location
@@ -212,6 +235,8 @@ class DocumentHistory(models.Model):
         ("Forwarded", "Forwarded"),
         ("Received", "Received"),
         ("Returned", "Returned"),
+        ("Archived", "Archived"),
+        ("Completed", "Completed"),
     ]
 
     document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name="history")

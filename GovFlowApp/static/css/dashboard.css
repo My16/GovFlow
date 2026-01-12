@@ -225,3 +225,14 @@
     color: #0c5460;
     border: 1px solid #bee5eb;
 }
+
+.completed-tag {
+    background-color: #d4edda;   /* Light green similar to received-tag */
+    color: #155724;              /* Dark green text */
+    border: 1px solid #c3e6cb;  /* matching border style */
+    padding: 3px 8px;            /* same as other tags */
+    border-radius: 20px;         /* same as other tags */
+    font-size: 0.75rem;          /* same as other tags */
+    font-weight: 600;            /* same as other tags */
+}
+

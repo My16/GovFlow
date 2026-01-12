@@ -93,6 +93,8 @@
                             <span class="tag returned-tag">Returned</span>
                         {% elif doc.status == 'Archived' %}
                             <span class="tag archived-tag">Archived</span>
+                        {% elif doc.status == 'Completed' %}
+                            <span class="tag completed-tag">Completed</span>
                         {% endif %}
                     </div>
 

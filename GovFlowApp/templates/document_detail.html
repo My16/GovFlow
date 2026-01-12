@@ -23,9 +23,16 @@
                         <i class="bi bi-download me-1"></i> Download QR Slip
                     </button>
 
-                    <!-- <button class="btn btn-rose flex-grow-0">
-                        <i class="bi bi-arrow-counterclockwise me-1"></i> Return
-                    </button> -->
+                    <!-- Complete Process Button triggers modal -->
+                    <button class="btn btn-success flex-grow-0"
+                            data-bs-toggle="modal"
+                            data-bs-target="#completeModal"
+                            {% if document.sender == request.user or document.status == "Completed" %}
+                                disabled
+                            {% endif %}>
+                        <i class="bi bi-archive me-1"></i> Complete Process
+                    </button>
+
 
                     <button class="btn btn-rose flex-grow-0"
                             data-bs-toggle="modal"
@@ -153,6 +160,42 @@
         </div>
 
     </div>
+
+    <!-- FINALIZE DOCUMENT MODAL -->
+    <div class="modal fade" id="completeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 bg-transparent">
+
+                <!-- Modal body card -->
+                <div class="modal-body p-4 bg-white rounded shadow text-center mx-auto" style="max-width: 24rem;">
+
+                    <!-- Icon circle -->
+                    <div class="d-flex align-items-center justify-content-center bg-success bg-opacity-10 rounded-circle mx-auto mb-3" 
+                        style="width: 64px; height: 64px;">
+                        <i class="bi bi-archive text-success fs-2"></i>
+                    </div>
+
+                    <!-- Title -->
+                    <h5 class="fw-bold mb-2">Finalize Document?</h5>
+
+                    <!-- Description -->
+                    <p class="text-muted mb-4">This document will be marked as Completed and moved to the archive records.</p>
+
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-center gap-2">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        
+                        <form method="POST" action="{% url 'complete_document' document.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success fw-bold">Archive Document</button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Delete Modal -->
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">

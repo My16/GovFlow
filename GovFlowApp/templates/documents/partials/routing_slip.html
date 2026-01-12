@@ -65,6 +65,12 @@
         text-transform: uppercase;
     }
 
+    .bg-completed {
+        background-color: #dcfce7; /* green */
+        color: #166534; /* dark green text */
+    }
+
+
     /* Action Colors */
     .bg-received { background-color: #dcfce7; color: #166534; }   /* Green */
     .bg-forwarded { background-color: #dbeafe; color: #1e40af; }  /* Blue */
@@ -169,16 +175,16 @@
                                 {% elif document.status == "In Transit" %}bg-forwarded
                                 {% elif document.status == "Received" %}bg-received
                                 {% elif document.status == "Returned" %}bg-returned
+                                {% elif document.status == "Completed" %}bg-completed
                                 {% elif document.status == "Archived" %}bg-archived
-                                {% endif %}
-                            ">
+                                {% else %}bg-secondary
+                                {% endif %}">
                                 {{ document.status }}
                             </span>
                         {% else %}
                             <span class="badge">N/A</span>
                         {% endif %}
                     </td>
-
                 </tr>
             </table>
         </div>
@@ -214,6 +220,7 @@
                             {% if h.action|lower == 'received' %}bg-received
                             {% elif h.action|lower == 'forwarded' %}bg-forwarded
                             {% elif h.action|lower == 'returned' %}bg-returned
+                            {% elif h.action|lower == 'completed' %}bg-completed
                             {% else %}bg-pending{% endif %}">
                             {{ h.action|upper }}
                         </span>

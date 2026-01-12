@@ -226,6 +226,75 @@ def all_documents(request):
     }
     return render(request, 'all_documents.html', context)
 
+
+@login_required
+def complete_document(request, pk):
+    document = get_object_or_404(Document, pk=pk)
+
+    # Only allow if current user is NOT the sender/creator
+    if document.sender == request.user:
+        messages.error(request, "You cannot finalize a document you created.")
+        return redirect('document_detail', pk=document.pk)
+
+    if request.method == "POST":
+        # Mark the document as completed
+        document.mark_completed(completed_by=request.user, note="Finalized via modal")
+
+        # Notify the document creator
+        if document.sender != request.user:  # safety check
+            notify(
+                document.sender,
+                f"Your document {document.tracking_id} was finalized by {request.user.get_full_name()}.",
+                url=reverse("document_detail", kwargs={"pk": document.pk})
+            )
+
+        messages.success(request, f"Document {document.tracking_id} has been finalized.")
+        return redirect('document_detail', pk=document.pk)
+
+    # If someone tries GET request, just redirect
+    return redirect('document_detail', pk=document.pk)
+
+
+
+from django.db.models import Q
+
+@login_required
+def completed_documents(request):
+    # Get filter from query params (priority)
+    priority_filter = request.GET.get('priority', 'All')
+    search_query = request.GET.get('q', '')  # Global search
+
+    # Base queryset: only Completed documents
+    documents_qs = Document.objects.filter(status='Completed').order_by('-created_at')
+
+    # Apply priority filter if selected
+    if priority_filter != 'All':
+        documents_qs = documents_qs.filter(priority=priority_filter)
+
+    # Apply search filter
+    if search_query:
+        documents_qs = documents_qs.filter(
+            Q(tracking_id__icontains=search_query) |
+            Q(title__icontains=search_query) |
+            Q(sender__first_name__icontains=search_query) |
+            Q(sender__last_name__icontains=search_query)
+        )
+
+    # Pagination
+    paginator = Paginator(documents_qs, 15)  # 15 per page
+    page_number = request.GET.get('page')
+    documents = paginator.get_page(page_number)
+
+    context = {
+        'documents': documents,
+        'priority_filter': priority_filter,
+        'search_query': search_query,  # Pass this to template
+    }
+    return render(request, 'completed_documents.html', context)
+
+
+
+
 @login_required(login_url='loginpage')
 def new_document(request):
     if request.method == "POST":

@@ -78,14 +78,21 @@
                         <td>
                             {% if doc.status == "Pending" %}
                                 <span class="badge border border-warning text-warning bg-transparent">{{ doc.status }}</span>
-                            {% elif doc.status == "Received" %}
-                                <span class="badge border border-success text-success bg-transparent">{{ doc.status }}</span>
                             {% elif doc.status == "In Transit" %}
                                 <span class="badge border border-info text-info bg-transparent">{{ doc.status }}</span>
+                            {% elif doc.status == "Received" %}
+                                <span class="badge border border-success text-success bg-transparent">{{ doc.status }}</span>
+                            {% elif doc.status == "Completed" %}
+                                <span class="badge border border-success text-success bg-transparent">{{ doc.status }}</span>
+                            {% elif doc.status == "Returned" %}
+                                <span class="badge border border-danger text-danger bg-transparent">{{ doc.status }}</span>
+                            {% elif doc.status == "Archived" %}
+                                <span class="badge border border-secondary text-secondary bg-transparent">{{ doc.status }}</span>
                             {% else %}
                                 <span class="badge border border-secondary text-secondary bg-transparent">{{ doc.status }}</span>
                             {% endif %}
                         </td>
+
                         <td>
                             {% if doc.priority == "High" %}
                                 <span class="badge border border-danger text-danger bg-transparent">{{ doc.priority }}</span>

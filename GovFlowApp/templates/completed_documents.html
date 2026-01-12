@@ -1,0 +1,157 @@
+{% extends 'homepage.html' %}
+{% load static %}
+{% block title %} GovFlowApp - Completed Documents {% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/all_documents.css' %}">
+
+<div class="w-100 my-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3 px-3">
+        <h2 class="h4 fw-bold">Completed Documents</h2>
+    </div>
+
+    <!-- Filter Bar (Optional: Only priority filter) -->
+    <div class="card shadow-sm rounded-3 border p-3 mb-3 w-100">
+        <div class="d-flex flex-wrap align-items-center gap-3">
+
+            <div class="d-flex align-items-center gap-2 me-3">
+                <i class="bi bi-funnel text-secondary"></i>
+                <span class="fw-semibold text-secondary small">Filters:</span>
+            </div>
+
+            <!-- Priority Filter -->
+            <div class="d-flex align-items-center gap-2">
+                <label for="priorityFilter" class="form-label text-uppercase text-secondary small mb-0">Priority</label>
+                <select id="priorityFilter" class="form-select form-select-sm" onchange="applyFilters()">
+                    <option value="All" {% if priority_filter == 'All' %}selected{% endif %}>All Priorities</option>
+                    <option value="High" {% if priority_filter == 'High' %}selected{% endif %}>High</option>
+                    <option value="Medium" {% if priority_filter == 'Medium' %}selected{% endif %}>Medium</option>
+                    <option value="Low" {% if priority_filter == 'Low' %}selected{% endif %}>Low</option>
+                </select>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Completed Document Table -->
+    <div class="card shadow-sm rounded-3 border w-100">
+        <div class="table-scroll-wrapper">
+            <table class="table table-hover align-middle mb-0 text-secondary small">
+                <thead class="table-light sticky-top">
+                    <tr>
+                        <th>Tracking ID</th>
+                        <th>Title</th>
+                        <th>Sender</th>
+                        <th>Priority</th>
+                        <th>Current Office</th>
+                        <th>Created</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in documents %}
+                        {% if doc.status == "Completed" %}
+                        <tr class="hover-bg-light">
+                            <td class="font-monospace text-secondary">{{ doc.tracking_id }}</td>
+                            <td class="fw-medium text-dark">{{ doc.title }}</td>
+                            <td>{{ doc.sender.first_name }} {{ doc.sender.last_name|default:"N/A" }}</td>
+
+                            <!-- Priority -->
+                            <td>
+                                {% if doc.priority == "High" %}
+                                    <span class="badge border border-danger text-danger bg-transparent">{{ doc.priority }}</span>
+                                {% elif doc.priority == "Medium" %}
+                                    <span class="badge border border-warning text-warning bg-transparent">{{ doc.priority }}</span>
+                                {% else %}
+                                    <span class="badge border border-secondary text-secondary bg-transparent">{{ doc.priority }}</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="text-muted">
+                                <div class="d-flex align-items-center gap-1">
+                                    <i class="bi bi-building"></i> {{ doc.current_office.get_full_name|default:"N/A" }}
+                                </div>
+                            </td>
+
+                            <td class="text-muted">{{ doc.created_at|date:"M d, Y, h:i A" }}</td>
+
+                            <td class="text-end d-flex justify-content-end gap-2">
+                                <!-- View Details Button -->
+                                <a href="{% url 'document_detail' doc.pk %}" class="btn btn-sm btn-outline-success d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <!-- QR Code Button -->
+                                <a href="" target="_blank" class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center" data-bs-toggle="modal"
+                                    data-bs-target="#routingSlipModal"
+                                    data-document-id="{{ doc.id }}">
+                                    <i class="bi bi-qr-code"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endif %}
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-3 text-muted">No completed documents found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="card-footer d-flex justify-content-between align-items-center small">
+            <span>Showing {{ documents.start_index }} - {{ documents.end_index }} of {{ documents.paginator.count }} document{{ documents.paginator.count|pluralize }}</span>
+            
+            <nav aria-label="Document pagination">
+                <ul class="pagination pagination-sm mb-0 pagination-outline-success">
+                    {% if documents.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ documents.previous_page_number }}&priority={{ priority_filter }}&q={{ search_query }}" aria-label="Previous">&laquo;</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                    {% endif %}
+
+                    {% for num in documents.paginator.page_range %}
+                        {% if documents.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > documents.number|add:'-3' and num < documents.number|add:'3' %}
+                            <li class="page-item"><a class="page-link" href="?page={{ num }}&priority={{ priority_filter }}&q={{ search_query }}">{{ num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if documents.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ documents.next_page_number }}&priority={{ priority_filter }}&q={{ search_query }}" aria-label="Next">&raquo;</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+
+
+    </div>
+</div>
+
+<script src="{% static 'js/all_documents.js' %}"></script>
+
+<script>
+    function applyFilters() {
+        const priority = document.getElementById('priorityFilter').value;
+        const searchInput = document.getElementById('globalSearch'); // optional if you have search
+        const query = searchInput ? searchInput.value : '';
+
+        let url = `?priority=${priority}`;
+        if (query) {
+            url += `&q=${encodeURIComponent(query)}`;
+        }
+
+        window.location.href = url;
+    }
+</script>
+
+{% endblock %}

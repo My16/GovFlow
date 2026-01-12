@@ -38,8 +38,8 @@
                         <i class="bi bi-folder2-open icon"></i><span>All Documents</span>
                     </a>
                 </li>
-                <li class="" data-tooltip="Completed">
-                    <a href="">
+                <li class="{% if request.resolver_match.url_name == 'completed_documents' %}active{% endif %}" data-tooltip="Completed">
+                    <a href="{% url 'completed_documents' %}">
                         <i class="bi bi-check-circle icon"></i><span>Completed</span>
                     </a>
                 </li>
