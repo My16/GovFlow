@@ -86,22 +86,74 @@ def homepage(request):
 
     return render(request, 'homepage.html', context)
 
+# @login_required(login_url='loginpage')
+# def dashboard(request):
+#     # Get documents where user is sender OR current office
+#     user_documents = Document.objects.filter(
+#         Q(sender=request.user) | Q(current_office=request.user)
+#     )
+
+#     # Summary counts for this user
+#     total_documents = user_documents.count()
+#     in_progress = user_documents.filter(received_at__isnull=True).count()
+#     received = user_documents.filter(received_at__isnull=False).count()
+#     high_priority = user_documents.filter(priority='High').count()
+
+#     # 6 most recent documents for this user
+#     recent_documents = user_documents.order_by('-created_at')[:6]
+
+#     departments = defaultdict(list)
+#     all_users = User.objects.select_related("userprofile").all()
+#     for u in all_users:
+#         if hasattr(u, "userprofile") and u.userprofile.department:
+#             departments[u.userprofile.department].append(u)
+
+#     context = {
+#         "total_documents": total_documents,
+#         "in_progress": in_progress,
+#         "received": received,
+#         "high_priority": high_priority,
+#         "recent_documents": recent_documents,
+#         "departments": dict(departments),
+#     }
+
+#     return render(request, 'dashboard.html', context)
+
 @login_required(login_url='loginpage')
 def dashboard(request):
-    # Get documents where user is sender OR current office
+    search_query = request.GET.get("q", "").strip()
+
+    # Base queryset: ONLY documents user can access
     user_documents = Document.objects.filter(
-        Q(sender=request.user) | Q(current_office=request.user)
+        Q(sender=request.user) |
+        Q(current_office=request.user)
     )
 
-    # Summary counts for this user
+    # Only apply search if query is 3 or more characters
+    if len(search_query) >= 3:
+        user_documents = user_documents.filter(
+            Q(tracking_id__icontains=search_query) |
+            Q(title__icontains=search_query) |
+            Q(sender__first_name__icontains=search_query) |
+            Q(sender__last_name__icontains=search_query)
+        )
+    else:
+        search_query = ""  # clear the query so template shows no search
+
+    # Summary counts (based on filtered documents)
     total_documents = user_documents.count()
     in_progress = user_documents.filter(received_at__isnull=True).count()
     received = user_documents.filter(received_at__isnull=False).count()
     high_priority = user_documents.filter(priority='High').count()
 
-    # 6 most recent documents for this user
-    recent_documents = user_documents.order_by('-created_at')[:6]
+    # Recent documents (search-aware)
+    if search_query:
+        recent_documents = user_documents.order_by('-created_at')
+    else:
+        recent_documents = user_documents.order_by('-created_at')[:6]
 
+
+    # Departments for forwarding
     departments = defaultdict(list)
     all_users = User.objects.select_related("userprofile").all()
     for u in all_users:
@@ -115,9 +167,10 @@ def dashboard(request):
         "high_priority": high_priority,
         "recent_documents": recent_documents,
         "departments": dict(departments),
+        "search_query": search_query,
     }
 
-    return render(request, 'dashboard.html', context)
+    return render(request, "dashboard.html", context)
 
 @login_required(login_url='loginpage')
 def all_documents(request):
@@ -126,17 +179,31 @@ def all_documents(request):
         Q(sender=request.user) | Q(current_office=request.user)
     ).order_by('-created_at')
 
-    # Apply filters
+     # Filters
     status_filter = request.GET.get('status', 'All')
     priority_filter = request.GET.get('priority', 'All')
+    search_query = request.GET.get('q', '').strip()  # search query
+
+    # Apply filters
     if priority_filter != 'All':
         documents = documents.filter(priority=priority_filter)
     if status_filter != 'All':
         documents = documents.filter(status=status_filter)
 
+    # Apply search only if >=3 characters
+    if len(search_query) >= 3:
+        documents = documents.filter(
+            Q(tracking_id__icontains=search_query) |
+            Q(title__icontains=search_query) |
+            Q(sender__first_name__icontains=search_query) |
+            Q(sender__last_name__icontains=search_query)
+        )
+    else:
+        search_query = ""  # clear so template knows no search
+
     # Pagination
     page_number = request.GET.get('page', 1)
-    paginator = Paginator(documents, 10)  # 10 documents per page
+    paginator = Paginator(documents, 15)  # 15 documents per page
     page_obj = paginator.get_page(page_number)
 
     # GROUP USERS BY DEPARTMENT
@@ -155,6 +222,7 @@ def all_documents(request):
         'priority_filter': priority_filter,
         'paginator': paginator,
         'departments': dict(departments),
+        'search_query': search_query,
     }
     return render(request, 'all_documents.html', context)
 

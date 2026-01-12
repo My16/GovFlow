@@ -62,6 +62,11 @@
     <div class="recent-documents-section">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h4 class="section-title">Recent Documents</h4>
+            {% if search_query %}
+                <p class="text-muted mb-2">
+                    Showing results for "<strong>{{ search_query }}</strong>"
+                </p>
+            {% endif %}
             <a href="{% url 'all_documents' %}" class="view-all-link">View All →</a>
         </div>
 
