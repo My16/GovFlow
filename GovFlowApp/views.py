@@ -244,11 +244,11 @@ def complete_document(request, pk):
         if document.sender != request.user:  # safety check
             notify(
                 document.sender,
-                f"Your document {document.tracking_id} was finalized by {request.user.get_full_name()}.",
+                f"Your document {document.title} with tracking ID {document.tracking_id} was finalized by {request.user.get_full_name()}.",
                 url=reverse("document_detail", kwargs={"pk": document.pk})
             )
 
-        messages.success(request, f"Document {document.tracking_id} has been finalized.")
+        messages.success(request, f"Document {document.title} with tracking ID {document.tracking_id} has been finalized.")
         return redirect('document_detail', pk=document.pk)
 
     # If someone tries GET request, just redirect
@@ -310,12 +310,6 @@ def new_document(request):
             description=description
         )
 
-        notify(
-            request.user,
-            f"Document {document.tracking_id} was created.",
-            url=f"/documents/{document.pk}/"
-        )
-
         messages.success(request, "Document registered successfully.")
         return redirect("dashboard")
     
@@ -328,24 +322,31 @@ def delete_document(request, pk):
     document = get_object_or_404(Document, pk=pk)
 
     if request.method == "POST":
+        Notification.objects.filter(
+            url=f"/documents/{document.pk}/"
+        ).delete()
+
         document.delete()
         messages.success(request, "Document successfully deleted.")
-        return redirect("all_documents")  # update your list view name
+        return redirect("all_documents")
 
     messages.error(request, "Invalid request.")
     return redirect("all_documents")
 
+
 @login_required
 def document_detail(request, pk):
-    document = get_object_or_404(Document, pk=pk)
+    document = Document.objects.filter(pk=pk).first()
 
-    # Only allow viewing if:
-    # - User is sender OR current office
+    if not document:
+        messages.warning(request, "This document no longer exists.")
+        return redirect("all_documents")
+
+    # Authorization check
     if request.user != document.sender and request.user != document.current_office:
         messages.error(request, "You are not authorized to view this document.")
         return redirect("all_documents")
-    
-    # GROUP USERS BY DEPARTMENT
+
     from collections import defaultdict
     departments = defaultdict(list)
 
@@ -354,7 +355,6 @@ def document_detail(request, pk):
         if hasattr(u, "userprofile") and u.userprofile.department:
             departments[u.userprofile.department].append(u)
 
-    # Determine return target for modal display
     forwards = document.history.filter(action="Forwarded").order_by("-timestamp")
 
     if forwards.exists():
@@ -373,6 +373,7 @@ def document_detail(request, pk):
     }
 
     return render(request, "document_detail.html", context)
+
 
 
 @login_required
@@ -401,16 +402,16 @@ def forward_document(request, pk):
         if new_office_user != request.user:
             notify(
                 new_office_user,
-                f"Document {document.tracking_id} was forwarded to you.",
+                f"Document {document.title} with tracking ID {document.tracking_id} was forwarded to you by {request.user.get_full_name()}.",
                 url=reverse("receive_page")
             )
 
         # Notify sender if it's not the same as the new office
-        if document.sender != new_office_user:
-            notify(
-                document.sender,
-                f"Your document {document.tracking_id} was forwarded to {new_office_user.get_full_name()}."
-            )
+        # if document.sender != new_office_user:
+        #     notify(
+        #         document.sender,
+        #         f"Your document {document.title} with tracking ID {document.tracking_id} was forwarded to {new_office_user.get_full_name()}."
+        #     )
 
 
         messages.success(request, "Document forwarded successfully.")
@@ -465,18 +466,18 @@ def return_document(request, pk):
     if return_office != request.user:
         notify(
             return_office,
-            f"Document {document.tracking_id} was returned to you.",
+            f"Document {document.title} with tracking ID {document.tracking_id} was returned to you by {request.user.get_full_name()}.",
             url=reverse("receive_page")
         )
 
     # Notify sender if sender is not the return office (to avoid double)
-    if document.sender != return_office:
-        notify(
-            document.sender,
-            f"Document {document.tracking_id} was returned to {return_office.get_full_name()}."
-        )
+    # if document.sender != return_office:
+    #     notify(
+    #         document.sender,
+    #         f"Document {document.title} with tracking ID {document.tracking_id} was returned to {return_office.get_full_name()}."
+    #     )
 
-    messages.success(request, "Document returned successfully.")
+    messages.success(request, f"Document {document.title} with tracking ID {document.tracking_id} was returned to {return_office.get_full_name()}.")
     return redirect("document_detail", pk=pk)
 
 
@@ -588,11 +589,11 @@ def receive_document(request):
     # Send notifications
     notify(
         document.sender,
-        f"Document {document.tracking_id} was received by {request.user.get_full_name()}.",
+        f"Document {document.title} with tracking ID {document.tracking_id} was received by {request.user.get_full_name()}.",
         url=document_detail_url
     )
 
-    messages.success(request, f"Document {document.tracking_id} received successfully.")
+    messages.success(request, f"Document {document.title} with tracking ID {document.tracking_id} received successfully.")
     return redirect("receive_page")
 
 

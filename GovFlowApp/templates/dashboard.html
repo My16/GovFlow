@@ -120,7 +120,16 @@
                             </a>
                             {% endif %}
                             <!-- Delete Button -->
-                            <button class="btn btn-sm btn-outline-danger action-btn" data-bs-toggle="modal" data-bs-target="#deleteModal{{ doc.id }}" {% if doc.current_office != request.user %} disabled{% endif %}><i class="bi bi-trash-fill"></i></button>
+                            <!-- <button class="btn btn-sm btn-outline-danger action-btn" data-bs-toggle="modal" data-bs-target="#deleteModal{{ doc.id }}" {% if doc.current_office != request.user %} disabled{% endif %}><i class="bi bi-trash-fill"></i></button> -->
+
+                            {% if doc.sender == request.user %}
+                                <button class="btn btn-sm btn-outline-danger action-btn" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#deleteModal{{ doc.id }}">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            {% endif %}
+
 
                             <!-- Delete Confirmation Modal -->
                             <div class="modal fade" id="deleteModal{{ doc.id }}" tabindex="-1" aria-hidden="true">

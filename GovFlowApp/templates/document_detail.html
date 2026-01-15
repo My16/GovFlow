@@ -24,7 +24,7 @@
                     </button>
 
                     <!-- Complete Process Button triggers modal -->
-                    <button class="btn btn-success flex-grow-0"
+                    <!-- <button class="btn btn-success flex-grow-0"
                             data-bs-toggle="modal"
                             data-bs-target="#completeModal"
                             {% if document.sender == request.user or document.status == "Completed" %}
@@ -51,15 +51,53 @@
                                 data-document-id="{{ document.pk }}" data-bs-toggle="modal" data-bs-target="#forwardModal"
                             {% endif %}>
                         <i class="bi bi-send me-1"></i> Forward
-                    </button>
+                    </button> -->
+
+                    {% if document.status != "Completed" %}
+                        <button class="btn btn-success flex-grow-0"
+                                data-bs-toggle="modal"
+                                data-bs-target="#completeModal"
+                                {% if document.sender == request.user %}
+                                    disabled
+                                {% endif %}>
+                            <i class="bi bi-archive me-1"></i> Complete Process
+                        </button>
+
+                        <button class="btn btn-rose flex-grow-0"
+                                data-bs-toggle="modal"
+                                data-bs-target="#returnModal"
+                                {% if document.current_office != request.user or not return_target %}
+                                    disabled
+                                {% endif %}>
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> Return
+                        </button>
+
+                        <button class="btn btn-primary flex-grow-0"
+                                {% if document.current_office != request.user or document.status == "In Transit" %}
+                                    disabled
+                                {% else %}
+                                    data-document-id="{{ document.pk }}" data-bs-toggle="modal" data-bs-target="#forwardModal"
+                                {% endif %}>
+                            <i class="bi bi-send me-1"></i> Forward
+                        </button>
+                    {% endif %}
+
 
 
                     <!-- Delete Button -->
-                    <button class="btn btn-outline-danger flex-grow-0"
+                    <!-- <button class="btn btn-outline-danger flex-grow-0"
                             data-bs-toggle="modal" data-bs-target="#deleteModal"
                             {% if document.current_office != request.user %} disabled{% endif %}>
                         <i class="bi bi-trash me-1"></i> Delete
-                    </button>
+                    </button> -->
+
+                    {% if document.sender == request.user %}
+                        <button class="btn btn-outline-danger flex-grow-0"
+                                data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="bi bi-trash me-1"></i> Delete
+                        </button>
+                    {% endif %}
+
 
 
                 </div>
