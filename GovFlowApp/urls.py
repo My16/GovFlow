@@ -23,6 +23,9 @@ urlpatterns = [
     path("documents/<int:pk>/return/", views.return_document, name="return_document"),
     path("documents/<int:pk>/complete/", views.complete_document, name="complete_document"),
     path("documents/completed/", views.completed_documents, name="completed_documents"),
+    path("documents/<int:pk>/edit/modal/", views.edit_document_modal, name="edit_document_modal"),
+    path("documents/<int:pk>/edit/", views.edit_document, name="edit_document"),
+    path('documents/<int:pk>/retract/', views.retract_document, name='retract_document'),
 ]
 
 if settings.DEBUG:

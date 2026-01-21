@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404, HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -293,8 +293,6 @@ def completed_documents(request):
     return render(request, 'completed_documents.html', context)
 
 
-
-
 @login_required(login_url='loginpage')
 def new_document(request):
     if request.method == "POST":
@@ -315,6 +313,57 @@ def new_document(request):
     
     # No need to pass 'users' if they are not used in the form
     return render(request, 'new_document.html')
+
+@login_required
+def edit_document(request, pk):
+    document = get_object_or_404(Document, pk=pk)
+
+    if document.sender != request.user:
+        messages.error(request, "You are not authorized to edit this document.")
+        return redirect("document_detail", pk=pk)
+
+    if document.status == "Completed":
+        messages.error(request, "Completed documents can no longer be edited.")
+        return redirect("document_detail", pk=pk)
+
+    if document.history.filter(action="Forwarded").exists():
+        messages.error(request, "This document can no longer be edited after forwarding.")
+        return redirect("document_detail", pk=pk)
+
+    if request.method == "POST":
+        document.title = request.POST.get("title")
+        document.priority = request.POST.get("priority")
+        document.description = request.POST.get("description")
+        document.save()
+
+        DocumentHistory.objects.create(
+            document=document,
+            action="Edited",
+            performed_by=request.user,
+            note="Document metadata updated"
+        )
+
+        messages.success(request, "Document updated successfully.")
+        return redirect("document_detail", pk=pk)
+
+
+@login_required
+def edit_document_modal(request, pk):
+    if request.method != "GET":
+        return HttpResponse(status=405)
+
+    document = get_object_or_404(Document, pk=pk)
+
+    if document.sender != request.user or document.status == "Completed":
+        return HttpResponse(status=403)
+
+    return render(
+        request,
+        "documents/partials/edit_document_form.html",
+        {"document": document}
+    )
+
+
 
 
 @login_required(login_url='loginpage')
@@ -337,7 +386,6 @@ def delete_document(request, pk):
 @login_required
 def document_detail(request, pk):
     document = Document.objects.filter(pk=pk).first()
-
     if not document:
         messages.warning(request, "This document no longer exists.")
         return redirect("all_documents")
@@ -347,33 +395,37 @@ def document_detail(request, pk):
         messages.error(request, "You are not authorized to view this document.")
         return redirect("all_documents")
 
-    from collections import defaultdict
     departments = defaultdict(list)
-
     all_users = User.objects.select_related("userprofile").all()
     for u in all_users:
         if hasattr(u, "userprofile") and u.userprofile.department:
             departments[u.userprofile.department].append(u)
 
     forwards = document.history.filter(action="Forwarded").order_by("-timestamp")
-
-    if forwards.exists():
-        prev_forward = forwards[1] if forwards.count() > 1 else None
-        return_target = prev_forward.to_office if prev_forward else document.sender
-    else:
-        return_target = None
+    prev_forward = forwards[1] if forwards.count() > 1 else None
+    return_target = prev_forward.to_office if prev_forward else document.sender if forwards.exists() else None
 
     history = document.history.order_by("-timestamp")
+
+    # Can retract if last forward exists and has not been received
+    last_forward = document.history.filter(action="Forwarded").order_by('-timestamp').first()
+    can_retract = last_forward and not document.history.filter(
+        action="Received", timestamp__gte=last_forward.timestamp
+    ).exists() and document.current_office == request.user
+
+    # Can forward if user is current holder, not completed, and not retractable
+    can_forward = document.current_office == request.user and document.status != "Completed" and not can_retract
 
     context = {
         "document": document,
         "history": history,
         "departments": dict(departments),
         "return_target": return_target,
+        "can_retract": can_retract,
+        "can_forward": can_forward,
     }
 
     return render(request, "document_detail.html", context)
-
 
 
 @login_required
@@ -419,6 +471,45 @@ def forward_document(request, pk):
 
     messages.error(request, "Invalid request.")
     return redirect("document_detail", pk=pk)
+
+
+@login_required
+def retract_document(request, pk):
+    document = get_object_or_404(Document, pk=pk)
+
+    # Only the current holder can retract
+    if request.user != document.current_office:
+        messages.error(request, "Only the current document holder can retract this document.")
+        return redirect("document_detail", pk=pk)
+
+    # Find the last forward action
+    last_forward = document.history.filter(action="Forwarded").order_by('-timestamp').first()
+    if not last_forward:
+        messages.error(request, "This document has not been forwarded yet, so it cannot be retracted.")
+        return redirect("document_detail", pk=pk)
+
+    # Check if the document has been received by the wrong recipient
+    received_after_forward = document.history.filter(
+        action="Received", timestamp__gte=last_forward.timestamp
+    ).exists()
+    if received_after_forward:
+        messages.error(request, "This document has already been received and cannot be retracted.")
+        return redirect("document_detail", pk=pk)
+
+    # Mark the last forward as retracted (instead of deleting it)
+    last_forward.action = "Retracted"
+    last_forward.note = f"Retracted by {request.user.get_full_name()}"
+    last_forward.save()
+
+    # Keep document with current holder and reset status so it can be forwarded again
+    document.current_office = request.user
+    document.status = "Pending"  # or whatever status indicates ready to forward
+    document.save()
+
+    messages.success(request, f"The last forward of document '{document.title}' has been successfully retracted.")
+    return redirect("document_detail", pk=pk)
+
+
 
 @login_required
 def return_document(request, pk):

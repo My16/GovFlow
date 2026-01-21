@@ -219,3 +219,51 @@ loadNotifications();
 
 // Refresh every 5 seconds
 setInterval(loadNotifications, 5000);
+
+
+// Edit Document Modal
+document.addEventListener("show.bs.modal", function (event) {
+  const modal = document.getElementById("editDocumentModal");
+  if (!modal) return;
+
+  const button = event.relatedTarget;
+  const documentId = button?.getAttribute("data-document-id");
+
+  if (!documentId) return;
+
+  const content = document.getElementById("editDocumentModalContent");
+  content.innerHTML = `
+    <div class="modal-body text-center p-5">
+      <div class="spinner-border text-success"></div>
+    </div>
+  `;
+
+  fetch(`/documents/${documentId}/edit/modal/`)
+    .then(res => {
+      if (!res.ok) throw new Error("Unauthorized");
+      return res.text();
+    })
+    .then(html => {
+      content.innerHTML = html;
+    })
+    .catch(() => {
+      content.innerHTML = `
+        <div class="modal-body text-danger text-center">
+          Unable to load document.
+        </div>
+      `;
+    });
+});
+
+// Retract Document Modal
+document.addEventListener("DOMContentLoaded", function() {
+    const retractButtons = document.querySelectorAll(".retract-btn");
+    const retractForm = document.getElementById("retractForm");
+
+    retractButtons.forEach(btn => {
+        btn.addEventListener("click", function() {
+            const docId = this.getAttribute("data-document-id");
+            retractForm.action = `/documents/${docId}/retract/`; // match your URL pattern
+        });
+    });
+});

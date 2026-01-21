@@ -170,6 +170,36 @@ class Document(models.Model):
             performed_by=forwarded_by or self.sender
         )
 
+    # Retract document to sender
+    def retract_document(self, retracted_by=None, note=None):
+        """
+        Retract the document to the sender if it has been forwarded but not received.
+        """
+        # Check if document has a forward in transit
+        last_forward = self.history.filter(action="Forwarded").order_by("-timestamp").first()
+        if not last_forward:
+            raise ValueError("Document has not been forwarded yet.")
+
+        # Cannot retract if it has already been received
+        last_receive = self.history.filter(action="Received").order_by("-timestamp").first()
+        if last_receive and last_receive.timestamp > last_forward.timestamp:
+            raise ValueError("Cannot retract a document that has been received.")
+
+        # Retract: set current office back to sender
+        self.current_office = self.sender
+        self.status = "Pending"  # or "In Transit" depending on your workflow
+        self.save(update_fields=["current_office", "status"])
+
+        # Log in history
+        DocumentHistory.objects.create(
+            document=self,
+            action="Retracted",
+            from_office=last_forward.to_office,
+            to_office=self.sender,
+            performed_by=retracted_by,
+            note=note or "Document retracted to sender"
+        )
+
     # Mark document as received
     def mark_received(self, receiving_office, received_by=None, note=None):
         """
