@@ -416,6 +416,20 @@ def document_detail(request, pk):
     # Can forward if user is current holder, not completed, and not retractable
     can_forward = document.current_office == request.user and document.status != "Completed" and not can_retract
 
+    # 🔹 Offices that previously handled the document (for return dropdown)
+    previous_offices = (
+        document.history
+        .filter(action__in=["Forwarded", "Returned", "Received"])
+        .exclude(from_office__isnull=True)
+        .values_list("from_office", flat=True)
+        .distinct()
+    )
+
+    return_offices = User.objects.filter(
+        id__in=previous_offices
+    ).exclude(id=document.current_office_id)
+
+
     context = {
         "document": document,
         "history": history,
@@ -423,6 +437,7 @@ def document_detail(request, pk):
         "return_target": return_target,
         "can_retract": can_retract,
         "can_forward": can_forward,
+        "return_offices": return_offices,
     }
 
     return render(request, "document_detail.html", context)
@@ -525,51 +540,63 @@ def return_document(request, pk):
         return redirect("document_detail", pk=pk)
 
     note = request.POST.get("note", "").strip()
+    return_office_id = request.POST.get("return_to")
 
-    # Find the last action that sent this document to the current office
-    last_received_action = document.history.filter(
-        to_office=request.user,
-        action__in=["Forwarded", "Returned"]
-    ).order_by("-timestamp").first()
+    # 🔹 Get all previous offices from history (safe options)
+    previous_offices = (
+        document.history
+        .filter(action__in=["Forwarded", "Returned", "Received"])
+        .exclude(from_office__isnull=True)
+        .values_list("from_office", flat=True)
+        .distinct()
+    )
 
-    if not last_received_action:
-        messages.error(request, "Cannot determine where to return this document.")
+    allowed_offices = User.objects.filter(
+        id__in=previous_offices
+    ).exclude(id=request.user.id)
+
+    if not return_office_id:
+        messages.error(request, "Please select an office to return the document to.")
         return redirect("document_detail", pk=pk)
 
-    return_office = last_received_action.from_office or document.sender
+    # 🔐 Validate selected office
+    return_office = get_object_or_404(
+        User,
+        id=return_office_id,
+        id__in=allowed_offices.values_list("id", flat=True)
+    )
 
-    # Update document
+    # ✅ Update document
     document.current_office = return_office
     document.status = "In Transit"
     document.save()
 
-    # Log history
+    # 🧾 Log history
     DocumentHistory.objects.create(
         document=document,
         action="Returned",
         from_office=request.user,
         to_office=return_office,
         performed_by=request.user,
-        note=note or "Returned to previous office"
+        note=note or "Returned to selected office"
     )
 
-    # Notify receiving office
-    if return_office != request.user:
-        notify(
-            return_office,
-            f"Document {document.title} with tracking ID {document.tracking_id} was returned to you by {request.user.get_full_name()}.",
-            url=reverse("receive_page")
-        )
+    # 🔔 Notify receiving office
+    notify(
+        return_office,
+        f"Document {document.title} with tracking ID {document.tracking_id} "
+        f"was returned to you by {request.user.get_full_name()}.",
+        url=reverse("receive_page")
+    )
 
-    # Notify sender if sender is not the return office (to avoid double)
-    # if document.sender != return_office:
-    #     notify(
-    #         document.sender,
-    #         f"Document {document.title} with tracking ID {document.tracking_id} was returned to {return_office.get_full_name()}."
-    #     )
+    messages.success(
+        request,
+        f"Document {document.title} with tracking ID {document.tracking_id} "
+        f"was returned to {return_office.get_full_name()}."
+    )
 
-    messages.success(request, f"Document {document.title} with tracking ID {document.tracking_id} was returned to {return_office.get_full_name()}.")
     return redirect("document_detail", pk=pk)
+
 
 
 

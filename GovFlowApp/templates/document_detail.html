@@ -349,10 +349,14 @@
 
                         <!-- Return To -->
                         <label class="form-label">Return To</label>
-                        <input type="text"
-                            class="form-control"
-                            value="{{ return_target.get_full_name }}"
-                            readonly>
+                        <select name="return_to" class="form-select" required>
+                            <option value="">-- Select Office --</option>
+                            {% for office in return_offices %}
+                                <option value="{{ office.id }}">
+                                    {{ office.get_full_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
 
                         <!-- Note -->
                         <label class="form-label mt-3">Reason for Return</label>
