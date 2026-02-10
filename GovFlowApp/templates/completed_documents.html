@@ -21,6 +21,20 @@
                 <span class="fw-semibold text-secondary small">Filters:</span>
             </div>
 
+            <!-- Sender Filter -->
+            <div class="d-flex align-items-center gap-2">
+                <label for="senderFilter" class="form-label text-uppercase text-secondary small mb-0">Sender</label>
+                <select id="senderFilter" class="form-select form-select-sm" onchange="applyFilters()">
+                    <option value="All" {% if sender_filter == 'All' %}selected{% endif %}>All Senders</option>
+                    {% for sender in all_senders %}
+                        <option value="{{ sender.id }}" {% if sender_filter == sender.id|stringformat:"s" %}selected{% endif %}>
+                            {{ sender.get_full_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+
             <!-- Priority Filter -->
             <div class="d-flex align-items-center gap-2">
                 <label for="priorityFilter" class="form-label text-uppercase text-secondary small mb-0">Priority</label>
@@ -52,7 +66,6 @@
                 </thead>
                 <tbody>
                     {% for doc in documents %}
-                        {% if doc.status == "Completed" %}
                         <tr class="hover-bg-light">
                             <td class="font-monospace text-secondary">{{ doc.tracking_id }}</td>
                             <td class="fw-medium text-dark">{{ doc.title }}</td>
@@ -90,11 +103,10 @@
                                 </a>
                             </td>
                         </tr>
-                        {% endif %}
-                    {% empty %}
-                    <tr>
-                        <td colspan="7" class="text-center py-3 text-muted">No completed documents found.</td>
-                    </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-3 text-muted">No completed documents found.</td>
+                        </tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -142,10 +154,11 @@
 <script>
     function applyFilters() {
         const priority = document.getElementById('priorityFilter').value;
-        const searchInput = document.getElementById('globalSearch'); // optional if you have search
+        const sender = document.getElementById('senderFilter').value;
+        const searchInput = document.getElementById('globalSearch'); // optional
         const query = searchInput ? searchInput.value : '';
 
-        let url = `?priority=${priority}`;
+        let url = `?priority=${priority}&sender=${sender}`;
         if (query) {
             url += `&q=${encodeURIComponent(query)}`;
         }

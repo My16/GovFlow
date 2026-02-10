@@ -255,21 +255,30 @@ def complete_document(request, pk):
     return redirect('document_detail', pk=document.pk)
 
 
-
-from django.db.models import Q
-
 @login_required
 def completed_documents(request):
-    # Get filter from query params (priority)
+    user = request.user
     priority_filter = request.GET.get('priority', 'All')
-    search_query = request.GET.get('q', '')  # Global search
+    sender_filter = request.GET.get('sender', 'All')  # NEW
+    search_query = request.GET.get('q', '')
 
-    # Base queryset: only Completed documents
-    documents_qs = Document.objects.filter(status='Completed').order_by('-created_at')
+    # Documents created by user OR completed by user
+    completed_docs_ids = DocumentHistory.objects.filter(
+        action="Completed",
+        performed_by=user
+    ).values_list('document_id', flat=True)
 
-    # Apply priority filter if selected
+    documents_qs = Document.objects.filter(
+        Q(status='Completed', sender=user) | Q(id__in=completed_docs_ids)
+    ).order_by('-created_at')
+
+    # Apply priority filter
     if priority_filter != 'All':
         documents_qs = documents_qs.filter(priority=priority_filter)
+
+    # Apply sender filter
+    if sender_filter != 'All':
+        documents_qs = documents_qs.filter(sender_id=sender_filter)
 
     # Apply search filter
     if search_query:
@@ -280,15 +289,19 @@ def completed_documents(request):
             Q(sender__last_name__icontains=search_query)
         )
 
-    # Pagination
-    paginator = Paginator(documents_qs, 15)  # 15 per page
+    paginator = Paginator(documents_qs, 15)
     page_number = request.GET.get('page')
     documents = paginator.get_page(page_number)
+
+    # Pass all senders for dropdown
+    all_senders = User.objects.filter(document__status='Completed').distinct()
 
     context = {
         'documents': documents,
         'priority_filter': priority_filter,
-        'search_query': search_query,  # Pass this to template
+        'search_query': search_query,
+        'sender_filter': sender_filter,
+        'all_senders': all_senders,  # NEW
     }
     return render(request, 'completed_documents.html', context)
 
