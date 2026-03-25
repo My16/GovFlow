@@ -110,7 +110,17 @@
                                 <i class="bi bi-file-earmark-text"></i> Details
                             </a>
                             <!-- forward button -->
-                            <button class="btn btn-sm btn-outline-primary action-btn" data-document-id="{{ doc.pk }}" data-bs-toggle="modal" data-bs-target="#forwardModal" {% if doc.current_office != request.user or doc.status == "In Transit" %} disabled{% endif %}><i class="bi bi-send-fill"></i></button>
+                            <!-- <button class="btn btn-sm btn-outline-primary action-btn" data-document-id="{{ doc.pk }}" data-bs-toggle="modal" data-bs-target="#forwardModal" {% if doc.current_office != request.user or doc.status == "In Transit" %} disabled{% endif %}><i class="bi bi-send-fill"></i></button> -->
+                            {% if doc.status != "Completed" %}
+                                <button class="btn btn-sm btn-outline-primary action-btn" 
+                                        data-document-id="{{ doc.pk }}" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#forwardModal" 
+                                        {% if doc.current_office != request.user or doc.status == "In Transit" %} disabled{% endif %}>
+                                    <i class="bi bi-send-fill"></i>
+                                </button>
+                            {% endif %}
+
                             <!-- qr code button -->
                             {% if doc.qr_code %}
                             <a class="btn btn-sm btn-outline-secondary action-btn" data-bs-toggle="modal"

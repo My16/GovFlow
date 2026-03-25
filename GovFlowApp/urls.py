@@ -26,6 +26,9 @@ urlpatterns = [
     path("documents/<int:pk>/edit/modal/", views.edit_document_modal, name="edit_document_modal"),
     path("documents/<int:pk>/edit/", views.edit_document, name="edit_document"),
     path('documents/<int:pk>/retract/', views.retract_document, name='retract_document'),
+    path("document/<int:document_id>/add_status/", views.add_status, name="add_status"),
+    # path("reports/api/<str:report_type>/", views.document_report_api, name="document_report_api"),
+    path("reports/api/<str:report_type>/", views.document_report_api, name="document_report_api"),
 ]
 
 if settings.DEBUG:

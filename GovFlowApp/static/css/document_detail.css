@@ -347,6 +347,18 @@
     color: #9f1239;
 }
 
+.btn-violet {
+    background-color: #6f42c1;
+    border-color: #6f42c1;
+    color: #ffffff;
+}
+
+.btn-violet:hover {
+    background-color: #5a32a3;
+    border-color: #5a32a3;
+    color: #ffffff;
+}
+
 /* --- Responsive --- */
 @media (max-width: 991px) {
     .layout-row {

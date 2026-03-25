@@ -634,3 +634,146 @@ body {
     background-color: #128146; /* Bootstrap green */
     color: white;
 }
+
+
+
+
+
+
+
+/* --- Report Menu Parent Link --- */
+li[data-tooltip][data-menu="report"] > a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+}
+
+/* --- Submenu transition --- */
+#reportMenu {
+    margin-top: 5px;
+    transition: all 0.3s ease;
+}
+
+/* --- Hover open (only if not already opened by Bootstrap) --- */
+li[data-tooltip][data-menu="report"]:hover #reportMenu:not(.show) {
+    display: block;
+}
+
+/* --- Rotate arrow --- */
+li[data-tooltip][data-menu="report"] > a .bi-chevron-down {
+    transition: transform 0.3s ease;
+}
+
+/* Rotate arrow on hover */
+li[data-tooltip][data-menu="report"]:hover > a .bi-chevron-down {
+    transform: rotate(180deg);
+}
+
+/* Rotate arrow when clicked (Bootstrap open) */
+li[data-tooltip][data-menu="report"] > a[aria-expanded="true"] .bi-chevron-down {
+    transform: rotate(180deg);
+}
+
+/* --- Submenu items styling --- */
+#reportMenu ul li a {
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: background 0.2s ease, color 0.2s ease;
+    color: inherit;
+}
+
+/* Hover effect for submenu items */
+#reportMenu ul li a:hover {
+    background: #0e7a4e;
+    color: white;
+}
+
+
+
+
+
+
+
+/* dropdown for per-document reports */
+/* ---------------- Modern Select2 Styling ---------------- */
+
+/* Container */
+.select2-container--default {
+    width: 100% !important;
+    font-family: "Inter", sans-serif;
+    font-size: 0.95rem;
+}
+
+/* Single select input box */
+.select2-container--default .select2-selection--single {
+    background-color: #f9f9f9;       /* light gray for input box */
+    border: 1px solid #28a745;       /* green border */
+    border-radius: 12px;             /* rounded corners */
+    height: 42px;                     /* nice height */
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+/* Hover & Focus effect */
+.select2-container--default .select2-selection--single:hover,
+.select2-container--default .select2-selection--single.select2-selection--focus {
+    border-color: #1e7e34;           /* darker green on hover/focus */
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2); /* subtle glow */
+}
+
+/* Selected text */
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #212529;                  /* dark text */
+    line-height: 42px;               /* vertically center */
+}
+
+/* Placeholder text */
+.select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: #6c757d;                  /* gray placeholder */
+}
+
+/* Dropdown */
+.select2-container--default .select2-dropdown {
+    border-radius: 12px;
+    border: 1px solid #28a745;
+    background-color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Dropdown options */
+.select2-container--default .select2-results__option {
+    padding: 10px 15px;
+    transition: background 0.2s;
+}
+
+/* Highlighted option on hover/keyboard navigation */
+.select2-container--default .select2-results__option--highlighted {
+    background-color: #28a745;
+    color: #fff;
+}
+
+/* Selected option (after selection) */
+.select2-container--default .select2-results__option[aria-selected="true"] {
+    background-color: #1e7e34;
+    color: #fff;
+}
+
+/* Scrollbar for long lists (modern look) */
+.select2-container--default .select2-results__options {
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.select2-container--default .select2-results__options::-webkit-scrollbar {
+    width: 6px;
+}
+
+.select2-container--default .select2-results__options::-webkit-scrollbar-thumb {
+    background-color: #28a745;
+    border-radius: 3px;
+}

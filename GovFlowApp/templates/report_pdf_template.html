@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #333; padding: 4px; font-size: 12px; }
+        th { background-color: #d4edda; }
+    </style>
+</head>
+<body>
+    <h3>{{ report_type|capfirst }} Document Flow Report</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Tracking ID</th>
+                <th>Document Title</th>
+                <th>Action</th>
+                <th>From Office</th>
+                <th>To Office</th>
+                <th>Date</th>
+                <th>Days Stayed</th>
+                <th>Note</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in report_data %}
+            <tr>
+                <td>{{ r.tracking_id }}</td>
+                <td>{{ r.title }}</td>
+                <td>{{ r.action }}</td>
+                <td>{{ r.from_office }}</td>
+                <td>{{ r.to_office }}</td>
+                <td>{{ r.timestamp }}</td>
+                <td>{{ r.days_stayed }}</td>
+                <td>{{ r.note }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

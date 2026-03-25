@@ -241,6 +241,20 @@ class Document(models.Model):
             performed_by=returned_by
         )
 
+
+    def add_status_update(self, by_user, note):
+        if by_user != self.current_office:
+            raise PermissionError("Only the current document holder can update status.")
+
+        DocumentHistory.objects.create(
+            document=self,
+            action="Status Update",
+            from_office=self.current_office,
+            to_office=self.current_office,
+            performed_by=by_user,
+            note=note
+        )
+
 # Signal to delete old QR code when updating
 @receiver(pre_save, sender=Document)
 def delete_old_qr_code_file(sender, instance, **kwargs):
@@ -267,6 +281,7 @@ class DocumentHistory(models.Model):
         ("Returned", "Returned"),
         ("Archived", "Archived"),
         ("Completed", "Completed"),
+        ("Status Update", "Status Update"),
     ]
 
     document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name="history")

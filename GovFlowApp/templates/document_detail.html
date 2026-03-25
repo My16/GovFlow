@@ -52,6 +52,10 @@
                             {% endif %}>
                         <i class="bi bi-send me-1"></i> Forward
                     </button> -->
+<!-- 
+                    <button class="btn btn-white-outline flex-grow-0">
+                        <i class="bi bi-clock-history"></i> Status Update
+                    </button> -->
 
                     {% if document.status != "Completed" %}
 
@@ -130,7 +134,22 @@
                 <div class="left-column">
                     
                     <div class="doc-card mb-3 p-4">
-                        <span class="custom-badge">{{ document.tracking_id }}</span>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="custom-badge">{{ document.tracking_id }}</span>
+
+                            
+
+                            {% if document.status != "Completed" %}
+                               <button class="btn btn-violet text-white flex-grow-0 btn-sm"
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#addStatusModal"
+                                    data-document-id="{{ document.pk }}">
+                                    <i class="bi bi-clock-history me-1"></i> Add Status
+                                </button> 
+                            {% endif %}
+                            
+                        </div>
+                        
                         <h4 class="document-title">{{ document.title }}</h4>
 
                         <p class="summary-title">Description / Content</p>

@@ -11,6 +11,15 @@ from django.db.models import Q, OuterRef, Subquery
 from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils import timezone
+from datetime import timedelta
+import datetime
+from datetime import timedelta, datetime
+import pandas as pd
+from io import BytesIO
+from xhtml2pdf import pisa
+from django.template.loader import render_to_string
+from django.db.models import Q
 
 # Create your views here.
 
@@ -159,6 +168,7 @@ def dashboard(request):
     for u in all_users:
         if hasattr(u, "userprofile") and u.userprofile.department:
             departments[u.userprofile.department].append(u)
+
 
     context = {
         "total_documents": total_documents,
@@ -759,3 +769,154 @@ def notifications_api(request):
         "count": notifications.count(),
         "html": html
     })
+
+@login_required
+def add_status(request, document_id):
+    # Get the document
+    document = get_object_or_404(Document, pk=document_id)
+
+    # Only the current holder can add a status
+    if request.user != document.current_office:
+        messages.error(request, "You are not authorized to add a status to this document.")
+        return redirect("document_detail", pk=document.pk)
+
+    if request.method == "POST":
+        note = request.POST.get("note", "").strip()
+        if not note:
+            messages.error(request, "Status note cannot be empty.")
+            return redirect("document_detail", pk=document.pk)
+
+        # Add the status
+        try:
+            document.add_status_update(by_user=request.user, note=note)
+            messages.success(request, "Status update added successfully.")
+        except Exception as e:
+            messages.error(request, f"Failed to add status: {str(e)}")
+
+        return redirect("document_detail", pk=document.pk)
+
+    # If GET request, just redirect back
+    return redirect("document_detail", pk=document.pk)
+
+
+
+# REPORTS generation view
+
+@login_required
+def document_report_api(request, report_type):
+    today = timezone.now()
+    report_data = []
+
+    user = request.user
+    document_id = request.GET.get("document_id")  # single document option
+
+    # --- SINGLE DOCUMENT LOGIC ---
+    if document_id:
+        document = Document.objects.filter(
+            id=document_id
+        ).filter(
+            Q(sender=user) | Q(current_office=user)
+        ).first()
+
+        if not document:
+            return JsonResponse({"error": "Document not found or access denied."}, status=404)
+
+        histories = DocumentHistory.objects.select_related(
+            "document", "from_office", "to_office", "performed_by"
+        ).filter(document=document).order_by("timestamp")
+
+    else:
+        # --- Determine date range ---
+        if report_type == "weekly":
+            start_date = request.GET.get("start")
+            end_date = request.GET.get("end")
+            if start_date and end_date:
+                start_date = datetime.fromisoformat(start_date)
+                end_date = datetime.fromisoformat(end_date) + timedelta(days=1)
+            else:
+                start_date = today - timedelta(days=7)
+                end_date = today
+        elif report_type == "monthly":
+            month_year = request.GET.get("month_year")
+            if month_year:
+                year, month = map(int, month_year.split("-"))
+                start_date = datetime(year, month, 1)
+                if month == 12:
+                    end_date = datetime(year + 1, 1, 1)
+                else:
+                    end_date = datetime(year, month + 1, 1)
+            else:
+                start_date = today - timedelta(days=30)
+                end_date = today
+        else:
+            return JsonResponse({"error": "Invalid report type"}, status=400)
+
+        histories = DocumentHistory.objects.select_related(
+            "document", "from_office", "to_office", "performed_by"
+        ).filter(
+            timestamp__gte=start_date,
+            timestamp__lt=end_date
+        ).filter(
+            Q(document__sender=user) |
+            Q(document__current_office=user) |
+            Q(from_office=user) |
+            Q(to_office=user) |
+            Q(performed_by=user)
+        ).order_by("document", "timestamp")
+
+    # --- Prepare report ---
+    for h in histories:
+        next_h = DocumentHistory.objects.filter(
+            document=h.document,
+            timestamp__gt=h.timestamp
+        ).order_by("timestamp").first()
+
+        # Calculate days:hours:minutes:seconds
+        delta = (next_h.timestamp - h.timestamp) if next_h else (timezone.now() - h.timestamp)
+        total_seconds = int(delta.total_seconds())
+        days, remainder = divmod(total_seconds, 86400)
+        hours, remainder = divmod(remainder, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        days_stayed_str = f"{days}d {hours}h {minutes}m {seconds}s"
+
+        report_data.append({
+            "tracking_id": h.document.tracking_id,
+            "title": h.document.title,
+            "action": h.action,
+            "from_office": h.from_office.get_full_name() if h.from_office else "",
+            "to_office": h.to_office.get_full_name() if h.to_office else "",
+            "performed_by": h.performed_by.get_full_name() if h.performed_by else "",
+            "timestamp": h.timestamp.strftime("%b %d, %Y %H:%M"),
+            "days_stayed": days_stayed_str,
+            "note": h.note or ""
+        })
+
+    # --- Export handling ---
+    export = request.GET.get("export")
+    filename_prefix = 'single_document' if document_id else report_type
+
+    if export == "excel":
+        df = pd.DataFrame(report_data)
+        buffer = BytesIO()
+        df.to_excel(buffer, index=False)
+        buffer.seek(0)
+        response = HttpResponse(
+            buffer,
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        response['Content-Disposition'] = f'attachment; filename={filename_prefix}_report_{today.strftime("%Y%m%d")}.xlsx'
+        return response
+
+    if export == "pdf":
+        html = render_to_string("reports/report_pdf_template.html", {
+            "report_data": report_data,
+            "report_type": f"Document: {document.title}" if document_id else report_type
+        })
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename={filename_prefix}_report_{today.strftime("%Y%m%d")}.pdf'
+        pisa_status = pisa.CreatePDF(html, dest=response)
+        if pisa_status.err:
+            return HttpResponse("Error generating PDF", status=500)
+        return response
+
+    return JsonResponse({"report_data": report_data})

@@ -267,3 +267,13 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 });
+
+
+// Status Update Modal
+var addStatusModal = document.getElementById('addStatusModal');
+addStatusModal.addEventListener('show.bs.modal', function (event) {
+    var button = event.relatedTarget;
+    var documentId = button.getAttribute('data-document-id');
+    var form = addStatusModal.querySelector('#addStatusForm');
+    form.action = `/document/${documentId}/add_status/`;
+});

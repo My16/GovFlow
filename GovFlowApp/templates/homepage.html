@@ -9,6 +9,7 @@
 
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
         <link rel="stylesheet" href="{% static 'css/homepage.css' %}">
 
         <!-- Favicon / Logo -->
@@ -53,6 +54,43 @@
                         <i class="bi bi-qr-code-scan icon"></i><span>Receive Document</span>
                     </a>
                 </li>
+                <li data-tooltip="Report Generation" data-menu="report">
+
+                    <a data-bs-toggle="collapse" href="#reportMenu" role="button" aria-expanded="false">
+                        <i class="bi bi-file-earmark-bar-graph icon"></i>
+                        <span>Report Generation</span>
+                        <i class="bi bi-chevron-down ms-auto"></i>
+                    </a>
+
+                    <div class="collapse" id="reportMenu">
+                        <ul class="list-unstyled ps-4 mt-2">
+
+                            <li>
+                                <a href="" data-bs-toggle="modal" data-bs-target="#perDocumentReportModal">
+                                    <i class="bi bi-file-earmark-text"></i>
+                                    Per Document Report
+                                </a>
+                            </li>
+
+                            <li>
+                                <a href=""  data-bs-toggle="modal" data-bs-target="#weeklyReportSelectModal">
+                                    <i class="bi bi-calendar-week"></i>
+                                    Per Weekly Report
+                                </a>
+                            </li>
+
+                            <li>
+                                <a href="" data-bs-toggle="modal" data-bs-target="#monthlyReportSelectModal">
+                                    <i class="bi bi-calendar-month"></i>
+                                    Per Monthly Report
+                                </a>
+                            </li>
+
+                        </ul>
+                    </div>
+
+                </li>
+
             </ul>
 
             <div class="sidebar-footer">
@@ -304,11 +342,467 @@
             </div>
         </div>
 
+        <!-- Global Add Status Modal -->
+        <!-- ADD STATUS MODAL -->
+
+        
+        <div class="modal fade" id="addStatusModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+
+                    <!-- Modal Header -->
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title">
+                            <i class="bi bi-clock-history me-1"></i> Add Status
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <!-- Modal Body -->
+                    <div class="modal-body">
+                        <form method="POST" id="addStatusForm">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label for="statusNote" class="form-label">Status Note</label>
+                                <textarea id="statusNote" name="note" class="form-control" rows="4" placeholder="Enter status update..." required></textarea>
+                            </div>
+
+                            <!-- Modal Footer Buttons -->
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-outline-success">Add Status</button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div> 
+
+        <!-- Weekly and Monthly Report Modals -->
+
+
+        <!-- Weekly Report Selection Modal -->
+        <div class="modal fade" id="weeklyReportSelectModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title"><i class="bi bi-calendar-week"></i> Select Week</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <form id="weeklyReportForm">
+                            <div class="mb-3">
+                                <label for="weekStart" class="form-label">Week Start</label>
+                                <input type="date" class="form-control" id="weekStart" name="start" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="weekEnd" class="form-label">Week End</label>
+                                <input type="date" class="form-control" id="weekEnd" name="end" required>
+                            </div>
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-success">Generate Report</button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Report Selection Modal -->
+        <div class="modal fade" id="monthlyReportSelectModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title"><i class="bi bi-calendar-month"></i> Select Month</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <form id="monthlyReportForm">
+                            <div class="mb-3">
+                                <label for="monthYear" class="form-label">Month & Year</label>
+                                <input type="month" class="form-control" id="monthYear" name="month_year" required>
+                            </div>
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-success">Generate Report</button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Per Document Report Modal -->
+        <div class="modal fade" id="perDocumentReportModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title"><i class="bi bi-file-earmark-text"></i> Select Document</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <form id="documentReportForm">
+                            <div class="mb-3">
+                                <label for="documentSelect" class="form-label">Document</label>
+                                <!-- <select class="form-select" id="documentSelect" name="document_id" required>
+                                    <option value="">-- Select a Document --</option>
+                                    {% for doc in user_documents %}
+                                        <option value="{{ doc.id }}">
+                                            {{ doc.tracking_id }} - {{ doc.title }}
+                                        </option>
+                                    {% endfor %}
+                                </select> -->
+
+                                <select class="form-select" id="documentSelect" name="document_id" required>
+                                    <option value="">-- Select a Document --</option>
+                                    {% for doc in user_documents %}
+                                        <option value="{{ doc.id }}">
+                                            {{ doc.tracking_id }} - {{ doc.title }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-success">Generate Report</button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Weekly Report Modal -->
+        <div class="modal fade" id="weeklyReportModal" tabindex="-1">
+            <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title"><i class="bi bi-calendar-week"></i> Weekly Document Flow Report</h5>
+                        <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="table-responsive" id="weeklyReportTableContainer">
+                            <!-- Table will be injected here via AJAX -->
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <!-- <a id="weeklyExportPdf" class="btn btn-danger" target="_blank">
+                            <i class="bi bi-file-earmark-pdf"></i> Export PDF
+                        </a> -->
+                        <a id="weeklyExportExcel" class="btn btn-success" target="_blank">
+                            <i class="bi bi-file-earmark-excel"></i> Export Excel
+                        </a>
+                        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Report Modal -->
+        <div class="modal fade" id="monthlyReportModal" tabindex="-1">
+            <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title"><i class="bi bi-calendar-month"></i> Monthly Document Flow Report</h5>
+                        <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="table-responsive" id="monthlyReportTableContainer">
+                            <!-- Table will be injected here via AJAX -->
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <!-- <a id="monthlyExportPdf" class="btn btn-danger" target="_blank">
+                            <i class="bi bi-file-earmark-pdf"></i> Export PDF
+                        </a> -->
+                        <a id="monthlyExportExcel" class="btn btn-success" target="_blank">
+                            <i class="bi bi-file-earmark-excel"></i> Export Excel
+                        </a>
+                        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+
+                // Weekly Report
+                const weeklyForm = document.getElementById('weeklyReportForm');
+                weeklyForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const start = document.getElementById('weekStart').value;
+                    const end = document.getElementById('weekEnd').value;
+                    const url = `/reports/api/weekly/?start=${start}&end=${end}`;
+
+                    fetch(url)
+                        .then(res => res.json())
+                        .then(data => {
+                            const container = document.getElementById('weeklyReportTableContainer');
+
+                            // Build table HTML
+                            let html = `
+                                <table class="table table-bordered table-striped table-hover">
+                                    <thead class="table-success">
+                                        <tr>
+                                            <th>Tracking ID</th>
+                                            <th>Document Title</th>
+                                            <th>Action</th>
+                                            <th>From Office</th>
+                                            <th>To Office</th>
+                                            <th>Date</th>
+                                            <th>Days Stayed</th>
+                                            <th>Note</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                            `;
+
+                            if (data.report_data.length === 0) {
+                                html += `<tr><td colspan="8" class="text-center text-muted">No weekly report data available</td></tr>`;
+                            } else {
+                                data.report_data.forEach(r => {
+                                    html += `
+                                        <tr>
+                                            <td>${r.tracking_id}</td>
+                                            <td>${r.title}</td>
+                                            <td>${r.action}</td>
+                                            <td>${r.from_office}</td>
+                                            <td>${r.to_office}</td>
+                                            <td>${r.timestamp}</td>
+                                            <td>${r.days_stayed}</td>
+                                            <td>${r.note}</td>
+                                        </tr>
+                                    `;
+                                });
+                            }
+
+                            html += `</tbody></table>`;
+                            container.innerHTML = html;
+
+                            // Set export links
+                            // document.getElementById('weeklyExportPdf').href = url + "&export=pdf";
+                            document.getElementById('weeklyExportExcel').href = url + "&export=excel";
+
+                            new bootstrap.Modal(document.getElementById('weeklyReportModal')).show();
+                        })
+                        .catch(err => console.error(err));
+                });
+
+                // Monthly Report
+                const monthlyForm = document.getElementById('monthlyReportForm');
+                monthlyForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const monthYear = document.getElementById('monthYear').value;
+                    const url = `/reports/api/monthly/?month_year=${monthYear}`;
+
+                    fetch(url)
+                        .then(res => res.json())
+                        .then(data => {
+                            const container = document.getElementById('monthlyReportTableContainer');
+
+                            // Build table HTML
+                            let html = `
+                                <table class="table table-bordered table-striped table-hover">
+                                    <thead class="table-success">
+                                        <tr>
+                                            <th>Tracking ID</th>
+                                            <th>Document Title</th>
+                                            <th>Action</th>
+                                            <th>From Office</th>
+                                            <th>To Office</th>
+                                            <th>Date</th>
+                                            <th>Days Stayed</th>
+                                            <th>Note</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                            `;
+
+                            if (data.report_data.length === 0) {
+                                html += `<tr><td colspan="8" class="text-center text-muted">No monthly report data available</td></tr>`;
+                            } else {
+                                data.report_data.forEach(r => {
+                                    html += `
+                                        <tr>
+                                            <td>${r.tracking_id}</td>
+                                            <td>${r.title}</td>
+                                            <td>${r.action}</td>
+                                            <td>${r.from_office}</td>
+                                            <td>${r.to_office}</td>
+                                            <td>${r.timestamp}</td>
+                                            <td>${r.days_stayed}</td>
+                                            <td>${r.note}</td>
+                                        </tr>
+                                    `;
+                                });
+                            }
+
+                            html += `</tbody></table>`;
+                            container.innerHTML = html;
+
+                            // Set export links
+                            // document.getElementById('monthlyExportPdf').href = url + "&export=pdf";
+                            document.getElementById('monthlyExportExcel').href = url + "&export=excel";
+
+                            new bootstrap.Modal(document.getElementById('monthlyReportModal')).show();
+                        })
+                        .catch(err => console.error(err));
+                });
+
+                // Per Document Report
+                const documentForm = document.getElementById('documentReportForm');
+
+                documentForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const docId = document.getElementById('documentSelect').value;
+                    if (!docId) return;
+
+                    const url = `/reports/api/single/?document_id=${docId}`;
+
+                    fetch(url)
+                        .then(res => res.json())
+                        .then(data => {
+                            // Build table HTML
+                            let html = `
+                                <table class="table table-bordered table-striped table-hover">
+                                    <thead class="table-success">
+                                        <tr>
+                                            <th>Tracking ID</th>
+                                            <th>Document Title</th>
+                                            <th>Action</th>
+                                            <th>From Office</th>
+                                            <th>To Office</th>
+                                            <th>Date</th>
+                                            <th>Days Stayed</th>
+                                            <th>Note</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                            `;
+
+                            if (data.report_data.length === 0) {
+                                html += `<tr><td colspan="8" class="text-center text-muted">No report data available</td></tr>`;
+                            } else {
+                                data.report_data.forEach(r => {
+                                    html += `
+                                        <tr>
+                                            <td>${r.tracking_id}</td>
+                                            <td>${r.title}</td>
+                                            <td>${r.action}</td>
+                                            <td>${r.from_office}</td>
+                                            <td>${r.to_office}</td>
+                                            <td>${r.timestamp}</td>
+                                            <td>${r.days_stayed}</td>
+                                            <td>${r.note}</td>
+                                        </tr>
+                                    `;
+                                });
+                            }
+
+                            html += `</tbody></table>`;
+
+                            // Modal HTML
+                            const modalHtml = `
+                                <div class="modal fade" id="singleDocumentReportModal" tabindex="-1">
+                                    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-success text-white">
+                                                <h5 class="modal-title">Document Report</h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="table-responsive">${html}</div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <a href="${url}&export=excel" target="_blank" class="btn btn-success">
+                                                    <i class="bi bi-file-earmark-excel"></i> Export Excel
+                                                </a>
+                                                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+
+                            // Remove existing modal if any
+                            const existingModal = document.getElementById('singleDocumentReportModal');
+                            if (existingModal) existingModal.remove();
+
+                            // Append new modal and show
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = modalHtml;
+                            document.body.appendChild(tempDiv.firstElementChild); // firstElementChild is safe
+
+                            const modalEl = document.getElementById('singleDocumentReportModal');
+                            if (modalEl) {
+                                const modal = new bootstrap.Modal(modalEl);
+                                modal.show();
+                            } else {
+                                console.error('Modal element not found!');
+                            }
+                        })
+                        .catch(err => console.error(err));
+                });
+
+            });
+        </script>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+
+                // Function to initialize Select2
+                function initPerDocSelect2() {
+                    const select = $('#documentSelect');
+
+                    if (!select.hasClass('select2-hidden-accessible')) {
+                        select.select2({
+                            dropdownParent: $('#perDocumentReportModal .modal-content'), // important
+                            width: '100%',
+                            placeholder: '-- Select a Document --',
+                            allowClear: true
+                        });
+                    }
+                }
+
+                // Initialize when modal is shown
+                $('#perDocumentReportModal').on('shown.bs.modal', function () {
+                    initPerDocSelect2();
+                });
+
+                // Optional: also initialize on page load if modal is already open
+                initPerDocSelect2();
+
+            });
+        </script>
 
 
 
-
+        <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
         <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
         <script src="{% static 'js/homepage.js' %}"></script>
 
