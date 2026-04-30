@@ -132,11 +132,14 @@ def homepage(request):
 def dashboard(request):
     search_query = request.GET.get("q", "").strip()
 
-    # Base queryset: ONLY documents user can access
-    user_documents = Document.objects.filter(
-        Q(sender=request.user) |
-        Q(current_office=request.user)
-    )
+    # Admins/superusers see all documents
+    if request.user.is_staff or request.user.is_superuser:
+        user_documents = Document.objects.all()
+    else:
+        user_documents = Document.objects.filter(
+            Q(sender=request.user) |
+            Q(current_office=request.user)
+        )
 
     # Only apply search if query is 3 or more characters
     if len(search_query) >= 3:
@@ -147,28 +150,26 @@ def dashboard(request):
             Q(sender__last_name__icontains=search_query)
         )
     else:
-        search_query = ""  # clear the query so template shows no search
+        search_query = ""
 
-    # Summary counts (based on filtered documents)
+    # Summary counts
     total_documents = user_documents.count()
     in_progress = user_documents.filter(received_at__isnull=True).count()
     received = user_documents.filter(received_at__isnull=False).count()
     high_priority = user_documents.filter(priority='High').count()
 
-    # Recent documents (search-aware)
+    # Recent documents
     if search_query:
         recent_documents = user_documents.order_by('-created_at')
     else:
         recent_documents = user_documents.order_by('-created_at')[:6]
 
-
-    # Departments for forwarding
+    # Departments for forwarding modal
     departments = defaultdict(list)
     all_users = User.objects.select_related("userprofile").all()
     for u in all_users:
         if hasattr(u, "userprofile") and u.userprofile.department:
             departments[u.userprofile.department].append(u)
-
 
     context = {
         "total_documents": total_documents,
@@ -184,12 +185,15 @@ def dashboard(request):
 
 @login_required(login_url='loginpage')
 def all_documents(request):
-    # Get documents where user is sender OR current office
-    documents = Document.objects.filter(
-        Q(sender=request.user) | Q(current_office=request.user)
-    ).order_by('-created_at')
+    # Superusers and staff can see all documents; normal users see only theirs.
+    if request.user.is_superuser or request.user.is_staff:
+        documents = Document.objects.all().order_by('-created_at')
+    else:
+        documents = Document.objects.filter(
+            Q(sender=request.user) | Q(current_office=request.user)
+        ).order_by('-created_at')
 
-     # Filters
+    # Filters
     status_filter = request.GET.get('status', 'All')
     priority_filter = request.GET.get('priority', 'All')
     search_query = request.GET.get('q', '').strip()  # search query
@@ -269,18 +273,21 @@ def complete_document(request, pk):
 def completed_documents(request):
     user = request.user
     priority_filter = request.GET.get('priority', 'All')
-    sender_filter = request.GET.get('sender', 'All')  # NEW
+    sender_filter = request.GET.get('sender', 'All')
     search_query = request.GET.get('q', '')
 
-    # Documents created by user OR completed by user
-    completed_docs_ids = DocumentHistory.objects.filter(
-        action="Completed",
-        performed_by=user
-    ).values_list('document_id', flat=True)
+    # Admins/superusers see ALL completed documents
+    if user.is_staff or user.is_superuser:
+        documents_qs = Document.objects.filter(status='Completed').order_by('-created_at')
+    else:
+        completed_docs_ids = DocumentHistory.objects.filter(
+            action="Completed",
+            performed_by=user
+        ).values_list('document_id', flat=True)
 
-    documents_qs = Document.objects.filter(
-        Q(status='Completed', sender=user) | Q(id__in=completed_docs_ids)
-    ).order_by('-created_at')
+        documents_qs = Document.objects.filter(
+            Q(status='Completed', sender=user) | Q(id__in=completed_docs_ids)
+        ).order_by('-created_at')
 
     # Apply priority filter
     if priority_filter != 'All':
@@ -303,15 +310,18 @@ def completed_documents(request):
     page_number = request.GET.get('page')
     documents = paginator.get_page(page_number)
 
-    # Pass all senders for dropdown
-    all_senders = User.objects.filter(document__status='Completed').distinct()
+    # Admins see all senders; regular users see only senders of completed docs
+    if user.is_staff or user.is_superuser:
+        all_senders = User.objects.filter(document__status='Completed').distinct()
+    else:
+        all_senders = User.objects.filter(document__status='Completed').distinct()
 
     context = {
         'documents': documents,
         'priority_filter': priority_filter,
         'search_query': search_query,
         'sender_filter': sender_filter,
-        'all_senders': all_senders,  # NEW
+        'all_senders': all_senders,
     }
     return render(request, 'completed_documents.html', context)
 
@@ -413,11 +423,12 @@ def document_detail(request, pk):
         messages.warning(request, "This document no longer exists.")
         return redirect("all_documents")
 
-    # Authorization check
-    if request.user != document.sender and request.user != document.current_office:
-        messages.error(request, "You are not authorized to view this document.")
-        return redirect("all_documents")
-
+    # Authorization check — allow superusers and staff to view any document
+    if not (request.user.is_staff or request.user.is_superuser):
+        if request.user != document.sender and request.user != document.current_office:
+            messages.error(request, "You are not authorized to view this document.")
+            return redirect("all_documents")
+        
     departments = defaultdict(list)
     all_users = User.objects.select_related("userprofile").all()
     for u in all_users:

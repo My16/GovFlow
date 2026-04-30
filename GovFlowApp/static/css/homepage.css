@@ -635,12 +635,6 @@ body {
     color: white;
 }
 
-
-
-
-
-
-
 /* --- Report Menu Parent Link --- */
 li[data-tooltip][data-menu="report"] > a {
     display: flex;
@@ -653,11 +647,6 @@ li[data-tooltip][data-menu="report"] > a {
 #reportMenu {
     margin-top: 5px;
     transition: all 0.3s ease;
-}
-
-/* --- Hover open (only if not already opened by Bootstrap) --- */
-li[data-tooltip][data-menu="report"]:hover #reportMenu:not(.show) {
-    display: block;
 }
 
 /* --- Rotate arrow --- */
@@ -689,12 +678,6 @@ li[data-tooltip][data-menu="report"] > a[aria-expanded="true"] .bi-chevron-down 
     background: #0e7a4e;
     color: white;
 }
-
-
-
-
-
-
 
 /* dropdown for per-document reports */
 /* ---------------- Modern Select2 Styling ---------------- */
@@ -776,4 +759,63 @@ li[data-tooltip][data-menu="report"] > a[aria-expanded="true"] .bi-chevron-down 
 .select2-container--default .select2-results__options::-webkit-scrollbar-thumb {
     background-color: #28a745;
     border-radius: 3px;
+}
+
+/* Report submenu container */
+#reportMenu {
+    margin-top: 5px;
+}
+
+/* Submenu list */
+#reportMenu ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+/* Submenu item */
+#reportMenu ul li a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    text-decoration: none;
+    color: #262626;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+/* Hover */
+#reportMenu ul li a:hover {
+    background: #0e7a4e;
+    color: white;
+}
+
+li[data-menu="report"] > a {
+    display: flex;
+    align-items: center;
+}
+
+/* Show submenu on hover */
+li[data-menu="report"]:hover #reportMenu {
+    display: block !important;
+}
+
+/* Center report icon when collapsed */
+.sidebar.collapsed li[data-menu="report"] > a {
+    justify-content: center;
+}
+
+/* Hide arrow when collapsed */
+.sidebar.collapsed li[data-menu="report"] .bi-chevron-down {
+    display: none;
+}
+
+.sidebar.collapsed #reportMenu {
+    display: none !important;
+}
+
+/* Disable hover submenu when sidebar is collapsed */
+.sidebar.collapsed li[data-menu="report"]:hover #reportMenu {
+    display: none !important;
 }
