@@ -1078,6 +1078,13 @@ def mark_notification_read(request, pk):
     return redirect(request.META.get("HTTP_REFERER", "dashboard"))
 
 @login_required
+def mark_all_notifications_read(request):
+    if request.method == 'POST':
+        Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
+        return JsonResponse({'success': True})
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+@login_required
 def notifications_api(request):
     notifications = Notification.objects.filter(
         recipient=request.user,

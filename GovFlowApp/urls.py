@@ -20,6 +20,7 @@ urlpatterns = [
     path('documents/routing-slip/<int:pk>/', views.routing_slip_partial, name='routing_slip_partial'),
     path("notifications/read/<int:pk>/", views.mark_notification_read, name="mark_notification_read"),
     path("notifications/api/", views.notifications_api, name="notifications_api"),
+    path("notifications/mark-all-read/", views.mark_all_notifications_read, name="mark_all_notifications_read"),
     path("documents/<int:pk>/return/", views.return_document, name="return_document"),
     path("documents/<int:pk>/complete/", views.complete_document, name="complete_document"),
     path("documents/completed/", views.completed_documents, name="completed_documents"),
