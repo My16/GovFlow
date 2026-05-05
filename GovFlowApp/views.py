@@ -423,8 +423,8 @@ def dashboard(request):
 
     # Summary counts
     total_documents = user_documents.count()
-    in_progress = user_documents.filter(received_at__isnull=True).count()
-    received = user_documents.filter(received_at__isnull=False).count()
+    in_progress = user_documents.filter(status__in=['Pending', 'In Transit', 'Returned']).count()
+    received = user_documents.filter(status='Received').count()
     high_priority = user_documents.filter(priority='High').count()
 
     # Recent documents
@@ -1037,18 +1037,10 @@ def receive_document(request):
 
     from_office = last_action.from_office if last_action else None
 
-    # Update the document
-    document.current_office = request.user
-    document.status = "Received"
-    document.save()
-
-    # Log history properly
-    DocumentHistory.objects.create(
-        document=document,
-        action="Received",
-        from_office=from_office,
-        to_office=request.user,
-        performed_by=request.user,
+    # Update the document and log history via model method
+    document.mark_received(
+        receiving_office=request.user,
+        received_by=request.user,
         note="Received via QR/manual entry"
     )
     
