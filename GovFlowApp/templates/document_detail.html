@@ -4,407 +4,939 @@
 
 {% block content %}
 
-    <link rel="stylesheet" href="{% static 'css/document_detail.css' %}">
-    <div class="container-fluid p-4 document-detail-page">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
-        <div class="main-content-wrapper">
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; }
 
-            <div class="d-flex align-items-center header-row mb-3">
-                <!-- Back button on the left -->
-                <a href="{% url 'dashboard' %}" class="back-to-dashboard">
-                    ← Back to Dashboard
-                </a>
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Page ─────────────────────────────────────────── */
+.gf-page { width: 100%; padding: 8px 0 48px; }
+
+/* ── Back link ────────────────────────────────────── */
+.gf-back-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; font-weight: 600; color: #64748b;
+    text-decoration: none; margin-bottom: 20px;
+    transition: color .15s, gap .15s;
+    animation: slideUp .3s ease both;
+}
+.gf-back-link:hover { color: #1a2433; gap: 9px; }
+
+/* ── Page header row ──────────────────────────────── */
+.gf-header-row {
+    display: flex; align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px; margin-bottom: 24px; flex-wrap: wrap;
+    animation: slideUp .35s ease .05s both;
+}
+.gf-header-left {}
+.gf-page-title {
+    font-size: 20px; font-weight: 800; color: #1a2433;
+    margin: 0 0 6px; display: flex; align-items: center; gap: 10px;
+}
+.gf-page-title i { color: #16a34a; }
+.gf-tracking-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; color: #9ca3af;
+    font-family: 'Monaco','Menlo',monospace;
+    background: #f3f4f6; padding: 3px 10px;
+    border-radius: 20px;
+}
+
+/* ── Action buttons group ─────────────────────────── */
+.gf-actions {
+    display: flex; align-items: center;
+    gap: 8px; flex-wrap: wrap;
+}
+
+/* Base action button */
+.gf-action-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 16px; border-radius: 10px;
+    font-size: 12.5px; font-weight: 700;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    border: none; cursor: pointer;
+    transition: all .2s; white-space: nowrap;
+    text-decoration: none;
+}
+.gf-action-btn:disabled,
+.gf-action-btn[disabled] {
+    opacity: .38; cursor: not-allowed;
+    transform: none !important; box-shadow: none !important;
+}
+.gf-action-btn:hover:not(:disabled):not([disabled]) { transform: translateY(-1px); }
+
+/* Variants */
+.gf-btn-qr {
+    background: #f1f5f9; color: #475569;
+    border: 1.5px solid #e2e8f0;
+}
+.gf-btn-qr:hover:not(:disabled) { background: #e2e8f0; color: #1a2433; }
+
+.gf-btn-edit {
+    background: rgba(245,158,11,.10); color: #d97706;
+    border: 1.5px solid rgba(245,158,11,.25);
+}
+.gf-btn-edit:hover:not(:disabled) {
+    background: rgba(245,158,11,.18);
+    box-shadow: 0 2px 8px rgba(245,158,11,.2);
+}
+
+.gf-btn-status {
+    background: rgba(139,92,246,.10); color: #7c3aed;
+    border: 1.5px solid rgba(139,92,246,.25);
+}
+.gf-btn-status:hover:not(:disabled) {
+    background: rgba(139,92,246,.18);
+    box-shadow: 0 2px 8px rgba(139,92,246,.2);
+}
+
+.gf-btn-forward {
+    background: #2563eb; color: #fff;
+    border: 1.5px solid #2563eb;
+    box-shadow: 0 2px 8px rgba(37,99,235,.25);
+}
+.gf-btn-forward:hover:not(:disabled) {
+    background: #1d4ed8;
+    box-shadow: 0 4px 14px rgba(37,99,235,.35);
+}
+
+.gf-btn-retract {
+    background: rgba(239,68,68,.10); color: #dc2626;
+    border: 1.5px solid rgba(239,68,68,.25);
+}
+.gf-btn-retract:hover:not(:disabled) {
+    background: rgba(239,68,68,.18);
+    box-shadow: 0 2px 8px rgba(239,68,68,.2);
+}
+
+.gf-btn-return {
+    background: rgba(139,92,246,.10); color: #7c3aed;
+    border: 1.5px solid rgba(139,92,246,.25);
+}
+.gf-btn-return:hover:not(:disabled) {
+    background: rgba(139,92,246,.18);
+    box-shadow: 0 2px 8px rgba(139,92,246,.2);
+}
+
+.gf-btn-complete {
+    background: #16a34a; color: #fff;
+    border: 1.5px solid #16a34a;
+    box-shadow: 0 2px 8px rgba(22,163,74,.25);
+}
+.gf-btn-complete:hover:not(:disabled) {
+    background: #15803d;
+    box-shadow: 0 4px 14px rgba(22,163,74,.35);
+}
+
+.gf-btn-delete {
+    background: rgba(239,68,68,.08); color: #dc2626;
+    border: 1.5px solid rgba(239,68,68,.2);
+}
+.gf-btn-delete:hover:not(:disabled) {
+    background: #dc2626; color: #fff;
+    box-shadow: 0 2px 8px rgba(239,68,68,.3);
+}
+
+/* Divider between button groups */
+.gf-btn-divider {
+    width: 1px; height: 28px;
+    background: #e2e8f0; flex-shrink: 0;
+}
+
+/* ── Layout ───────────────────────────────────────── */
+.gf-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 20px; align-items: start;
+    animation: slideUp .4s ease .1s both;
+}
+
+/* ── Shared card ──────────────────────────────────── */
+.gf-card {
+    background: #fff; border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    border: 1px solid #eef2f7; overflow: hidden;
+}
+.gf-card-header {
+    display: flex; align-items: center; gap: 9px;
+    padding: 14px 20px; border-bottom: 1px solid #f0f4f8;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+.gf-card-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+}
+.gf-card-icon.green  { background: rgba(22,163,74,.12);  color: #16a34a; }
+.gf-card-icon.blue   { background: rgba(37,99,235,.12);  color: #2563eb; }
+.gf-card-icon.purple { background: rgba(139,92,246,.12); color: #7c3aed; }
+.gf-card-icon.orange { background: rgba(245,158,11,.12); color: #d97706; }
+.gf-card-title { font-size: 13.5px; font-weight: 700; color: #1a2433; }
+.gf-card-body  { padding: 20px; }
+
+/* ── Document main card ───────────────────────────── */
+.gf-doc-title {
+    font-size: 20px; font-weight: 800; color: #1a2433;
+    margin-bottom: 16px; line-height: 1.3;
+}
+.gf-section-label {
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .7px; color: #94a3b8; margin-bottom: 8px;
+}
+.gf-description {
+    background: #f8fafc; border: 1px solid #eef2f7;
+    border-radius: 10px; padding: 14px 16px;
+    font-size: 13.5px; color: #374151; line-height: 1.7;
+    min-height: 80px;
+}
+.gf-meta-row {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 16px; margin-top: 18px;
+}
+.gf-meta-item {}
+.gf-meta-label {
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .6px; color: #94a3b8; margin-bottom: 4px;
+}
+.gf-meta-value {
+    font-size: 13.5px; font-weight: 600; color: #1a2433;
+    display: flex; align-items: center; gap: 6px;
+}
+.gf-meta-value i { font-size: 12px; color: #9ca3af; }
+
+/* ── Status / location card ───────────────────────── */
+.gf-status-card { margin-bottom: 16px; }
+.gf-status-block {
+    padding: 18px 20px;
+    display: flex; align-items: center; gap: 14px;
+    border-bottom: 1px solid #f0f4f8;
+}
+.gf-status-block:last-child { border-bottom: none; }
+.gf-status-icon-wrap {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+}
+.gf-status-icon-wrap.green  { background: rgba(22,163,74,.12);  color: #16a34a; }
+.gf-status-icon-wrap.blue   { background: rgba(37,99,235,.12);  color: #2563eb; }
+.gf-status-icon-wrap.orange { background: rgba(245,158,11,.12); color: #d97706; }
+.gf-status-icon-wrap.teal   { background: rgba(20,184,166,.12); color: #0f766e; }
+.gf-status-sub  { font-size: 11px; color: #94a3b8; font-weight: 500; margin-bottom: 2px; }
+.gf-status-val  { font-size: 15px; font-weight: 800; color: #1a2433; }
+
+/* Status tag */
+.tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 700;
+}
+.pending-tag    { background: rgba(245,158,11,.1);  color: #d97706; }
+.in-transit-tag { background: rgba(37,99,235,.1);   color: #2563eb; }
+.received-tag   { background: rgba(22,163,74,.1);   color: #16a34a; }
+.completed-tag  { background: rgba(20,184,166,.1);  color: #0f766e; }
+.returned-tag   { background: rgba(139,92,246,.1);  color: #7c3aed; }
+.archived-tag   { background: rgba(107,114,128,.1); color: #6b7280; }
+
+/* Priority tag */
+.high-priority-tag   { background: rgba(239,68,68,.1);  color: #dc2626; }
+.medium-priority-tag { background: rgba(245,158,11,.1); color: #d97706; }
+.low-priority-tag    { background: rgba(22,163,74,.1);  color: #16a34a; }
+
+/* ── History card ─────────────────────────────────── */
+.gf-history-list { padding: 8px 0; }
+.gf-history-item {
+    display: flex; align-items: flex-start;
+    justify-content: space-between; gap: 12px;
+    padding: 12px 20px; border-bottom: 1px solid #f8fafc;
+    transition: background .15s;
+}
+.gf-history-item:last-child { border-bottom: none; }
+.gf-history-item:hover { background: #f8fafc; }
+.gf-history-left { display: flex; align-items: flex-start; gap: 12px; flex: 1; min-width: 0; }
+.gf-history-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    flex-shrink: 0; margin-top: 4px;
+}
+.gf-history-dot.green  { background: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,.15); }
+.gf-history-dot.gray   { background: #cbd5e1; }
+.gf-history-action { font-size: 13px; font-weight: 700; color: #1a2433; margin-bottom: 2px; }
+.gf-history-sub    { font-size: 11.5px; color: #64748b; }
+.gf-history-note   { font-size: 11px; color: #94a3b8; font-style: italic; margin-top: 2px; }
+.gf-history-time   { font-size: 10.5px; color: #b0bec5; white-space: nowrap; flex-shrink: 0; margin-top: 3px; }
+
+/* ── Modals ───────────────────────────────────────── */
+.gf-modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(13,27,42,.55); backdrop-filter: blur(4px);
+    z-index: 2000; align-items: center; justify-content: center;
+}
+.gf-modal-overlay.open { display: flex; }
+
+@keyframes modalIn {
+    from { opacity: 0; transform: scale(.92) translateY(16px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.gf-modal {
+    background: #fff; border-radius: 16px;
+    width: 100%; max-width: 460px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    animation: modalIn .25s cubic-bezier(.34,1.56,.64,1) both;
+    overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.gf-modal.sm { max-width: 380px; }
+
+.gf-modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 22px 14px; border-bottom: 1px solid #f0f4f8;
+}
+.gf-modal-title {
+    font-size: 15px; font-weight: 700; color: #1a2433;
+    display: flex; align-items: center; gap: 9px;
+}
+.gf-modal-title i { font-size: 14px; }
+.gf-modal-close {
+    width: 30px; height: 30px; border-radius: 8px;
+    border: none; background: #f0f4f8; color: #78909c;
+    cursor: pointer; display: flex; align-items: center;
+    justify-content: center; font-size: 13px; transition: background .15s;
+}
+.gf-modal-close:hover { background: #e0e6ed; color: #1a2433; }
+.gf-modal-body   { padding: 20px 22px; }
+.gf-modal-footer {
+    display: flex; align-items: center; justify-content: flex-end;
+    gap: 10px; padding: 14px 22px;
+    border-top: 1px solid #f0f4f8; background: #fafbfc;
+}
+
+/* Confirm (centered) modal body */
+.gf-confirm-body { padding: 28px 24px 8px; text-align: center; }
+.gf-confirm-icon {
+    width: 60px; height: 60px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 14px; font-size: 24px;
+}
+.gf-confirm-icon.green  { background: rgba(22,163,74,.12);  color: #16a34a; }
+.gf-confirm-icon.red    { background: rgba(239,68,68,.12);  color: #dc2626; }
+.gf-confirm-title { font-size: 17px; font-weight: 800; color: #1a2433; margin-bottom: 6px; }
+.gf-confirm-msg   { font-size: 13px; color: #78909c; line-height: 1.6; margin: 0; }
+.gf-confirm-msg strong { color: #1a2433; }
+
+/* Form inside modal */
+.gf-form-label {
+    font-size: 11.5px; font-weight: 700; color: #64748b;
+    text-transform: uppercase; letter-spacing: .5px;
+    margin-bottom: 6px; display: block;
+}
+.gf-form-control {
+    width: 100%; padding: 10px 13px;
+    border: 1.5px solid #e2e8f0; border-radius: 9px;
+    font-size: 13px; font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #1a2433; background: #f8fafc; outline: none;
+    transition: border-color .2s, box-shadow .2s;
+}
+.gf-form-control:focus {
+    border-color: #16a34a;
+    box-shadow: 0 0 0 3px rgba(22,163,74,.10);
+    background: #fff;
+}
+.gf-form-group { margin-bottom: 14px; }
+.gf-form-group:last-child { margin-bottom: 0; }
+
+/* Modal buttons */
+.gf-mfooter-cancel {
+    padding: 9px 18px; border-radius: 9px;
+    border: 1.5px solid #e2e8f0; background: #fff;
+    color: #64748b; font-size: 13px; font-weight: 600;
+    font-family: 'Plus Jakarta Sans', sans-serif; cursor: pointer;
+}
+.gf-mfooter-cancel:hover { background: #f0f4f8; }
+.gf-mfooter-green {
+    padding: 9px 20px; border-radius: 9px; border: none;
+    background: #16a34a; color: #fff; font-size: 13px; font-weight: 700;
+    font-family: 'Plus Jakarta Sans', sans-serif; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(22,163,74,.25);
+}
+.gf-mfooter-green:hover { background: #15803d; }
+.gf-mfooter-blue {
+    padding: 9px 20px; border-radius: 9px; border: none;
+    background: #2563eb; color: #fff; font-size: 13px; font-weight: 700;
+    font-family: 'Plus Jakarta Sans', sans-serif; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(37,99,235,.25);
+}
+.gf-mfooter-blue:hover { background: #1d4ed8; }
+.gf-mfooter-red {
+    padding: 9px 20px; border-radius: 9px; border: none;
+    background: #dc2626; color: #fff; font-size: 13px; font-weight: 700;
+    font-family: 'Plus Jakarta Sans', sans-serif; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(239,68,68,.25);
+}
+.gf-mfooter-red:hover { background: #b91c1c; }
+.gf-mfooter-purple {
+    padding: 9px 20px; border-radius: 9px; border: none;
+    background: #7c3aed; color: #fff; font-size: 13px; font-weight: 700;
+    font-family: 'Plus Jakarta Sans', sans-serif; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(139,92,246,.25);
+}
+.gf-mfooter-purple:hover { background: #6d28d9; }
+
+/* ── Responsive ───────────────────────────────────── */
+@media (max-width: 900px) {
+    .gf-layout { grid-template-columns: 1fr; }
+    .gf-meta-row { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+    .gf-header-row { flex-direction: column; align-items: flex-start; }
+    .gf-actions { width: 100%; }
+}
+</style>
 
 
-                <!-- Action buttons on the right -->
-                <div class="d-flex flex-wrap gap-2 button-group">
-                    <button class="btn btn-white-outline flex-grow-0" data-bs-toggle="modal"
-                        data-bs-target="#routingSlipModal">
-                        <i class="bi bi-download me-1"></i> Download QR Slip
+<div class="gf-page">
+
+    <!-- Back link -->
+    <a href="{% url 'dashboard' %}" class="gf-back-link">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+
+    <!-- Header row: title + actions -->
+    <div class="gf-header-row">
+        <div class="gf-header-left">
+            <h2 class="gf-page-title">
+                <i class="bi bi-file-earmark-text-fill"></i>
+                Document Detail
+            </h2>
+            <span class="gf-tracking-pill">
+                <i class="bi bi-upc-scan"></i> {{ document.tracking_id }}
+            </span>
+        </div>
+
+        <!-- ── Action Buttons ── -->
+        <div class="gf-actions">
+
+            <!-- Always visible: QR Slip -->
+            <button class="gf-action-btn gf-btn-qr"
+                    data-bs-toggle="modal" data-bs-target="#routingSlipModal">
+                <i class="bi bi-qr-code"></i> QR Slip
+            </button>
+
+            {% if document.status != "Completed" %}
+
+                <!-- Visual separator -->
+                <div class="gf-btn-divider"></div>
+
+                <!-- Edit — only sender can edit -->
+                <button class="gf-action-btn gf-btn-edit"
+                        data-bs-toggle="modal" data-bs-target="#editDocumentModal"
+                        {% if document.sender != request.user %}disabled{% endif %}>
+                    <i class="bi bi-pencil-fill"></i> Edit
+                </button>
+
+                <!-- Add Status Update -->
+                <button class="gf-action-btn gf-btn-status"
+                        onclick="openModal('statusModal')">
+                    <i class="bi bi-clock-history"></i> Status
+                </button>
+
+                <!-- Visual separator -->
+                <div class="gf-btn-divider"></div>
+
+                <!-- Forward / Retract -->
+                {% if can_retract %}
+                    <button class="gf-action-btn gf-btn-retract"
+                            data-document-id="{{ document.pk }}"
+                            onclick="openModal('retractModal')">
+                        <i class="bi bi-arrow-repeat"></i> Retract
                     </button>
-
-                    <!-- Complete Process Button triggers modal -->
-                    <!-- <button class="btn btn-success flex-grow-0"
-                            data-bs-toggle="modal"
-                            data-bs-target="#completeModal"
-                            {% if document.sender == request.user or document.status == "Completed" %}
-                                disabled
-                            {% endif %}>
-                        <i class="bi bi-archive me-1"></i> Complete Process
+                {% elif can_forward %}
+                    <button class="gf-action-btn gf-btn-forward"
+                            data-document-id="{{ document.pk }}"
+                            data-bs-toggle="modal" data-bs-target="#forwardModal">
+                        <i class="bi bi-send-fill"></i> Forward
                     </button>
-
-
-                    <button class="btn btn-rose flex-grow-0"
-                            data-bs-toggle="modal"
-                            data-bs-target="#returnModal"
-                            {% if document.current_office != request.user or not return_target %}
-                                disabled
-                            {% endif %}>
-                        <i class="bi bi-arrow-counterclockwise me-1"></i> Return
+                {% else %}
+                    <button class="gf-action-btn gf-btn-forward" disabled>
+                        <i class="bi bi-send-fill"></i> Forward
                     </button>
+                {% endif %}
 
+                <!-- Return -->
+                <button class="gf-action-btn gf-btn-return"
+                        data-bs-toggle="modal" data-bs-target="#returnModal"
+                        {% if document.current_office != request.user or not return_target %}disabled{% endif %}>
+                    <i class="bi bi-arrow-counterclockwise"></i> Return
+                </button>
 
-                    <button class="btn btn-primary flex-grow-0"
-                            {% if document.current_office != request.user or document.status == "In Transit" %}
-                                disabled
-                            {% else %}
-                                data-document-id="{{ document.pk }}" data-bs-toggle="modal" data-bs-target="#forwardModal"
-                            {% endif %}>
-                        <i class="bi bi-send me-1"></i> Forward
-                    </button> -->
-<!-- 
-                    <button class="btn btn-white-outline flex-grow-0">
-                        <i class="bi bi-clock-history"></i> Status Update
-                    </button> -->
+                <!-- Complete — anyone except sender -->
+                <button class="gf-action-btn gf-btn-complete"
+                        onclick="openModal('completeModal')"
+                        {% if document.sender == request.user %}disabled{% endif %}>
+                    <i class="bi bi-check2-all"></i> Complete
+                </button>
 
-                    {% if document.status != "Completed" %}
+                <!-- Visual separator -->
+                <div class="gf-btn-divider"></div>
 
-                        <button class="btn btn-outline-warning flex-grow-0"
-                                data-document-id="{{ document.pk }}"
-                                data-bs-toggle="modal"
-                                data-bs-target="#editDocumentModal"
-                                {% if document.sender != request.user or document.status == "Completed" %} 
-                                    disabled 
-                                {% endif %}>
-                            <i class="bi bi-pencil me-1"></i> Edit
-                        </button>
+            {% endif %}
 
-                        <!-- Complete Process -->
-                        <button class="btn btn-success flex-grow-0"
-                                data-bs-toggle="modal"
-                                data-bs-target="#completeModal"
-                                {% if document.sender == request.user %}disabled{% endif %}>
-                            <i class="bi bi-archive me-1"></i> Complete Process
-                        </button>
+            <!-- Delete — only sender -->
+            {% if document.sender == request.user %}
+            <button class="gf-action-btn gf-btn-delete"
+                    onclick="openModal('deleteModal')">
+                <i class="bi bi-trash-fill"></i> Delete
+            </button>
+            {% endif %}
 
-                        <!-- Return -->
-                        <button class="btn btn-rose flex-grow-0"
-                                data-bs-toggle="modal"
-                                data-bs-target="#returnModal"
-                                {% if document.current_office != request.user or not return_target %}disabled{% endif %}>
-                            <i class="bi bi-arrow-counterclockwise me-1"></i> Return
-                        </button>
+        </div>
+    </div>
 
-                        <!-- Forward / Retract -->
-                        {% if can_retract %}
-                            <button class="btn btn-danger flex-grow-0 retract-btn"
-                                    data-document-id="{{ document.pk }}"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#retractModal">
-                                <i class="bi bi-arrow-repeat me-1"></i> Retract
-                            </button>
-                        {% elif can_forward %}
-                            <button class="btn btn-primary flex-grow-0"
-                                    data-document-id="{{ document.pk }}"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#forwardModal">
-                                <i class="bi bi-send me-1"></i> Forward
-                            </button>
-                        {% else %}
-                            <button class="btn btn-primary flex-grow-0" disabled>
-                                <i class="bi bi-send me-1"></i> Forward
-                            </button>
-                        {% endif %}
+    <!-- ── Main Layout ── -->
+    <div class="gf-layout">
 
-                    {% endif %}
+        <!-- LEFT COLUMN -->
+        <div style="display:flex;flex-direction:column;gap:18px;">
 
+            <!-- Document Info Card -->
+            <div class="gf-card">
+                <div class="gf-card-header">
+                    <div class="gf-card-icon green"><i class="bi bi-file-text-fill"></i></div>
+                    <span class="gf-card-title">Document Information</span>
+                </div>
+                <div class="gf-card-body">
+                    <div class="gf-doc-title">{{ document.title }}</div>
 
-                    <!-- Delete Button -->
-                    <!-- <button class="btn btn-outline-danger flex-grow-0"
-                            data-bs-toggle="modal" data-bs-target="#deleteModal"
-                            {% if document.current_office != request.user %} disabled{% endif %}>
-                        <i class="bi bi-trash me-1"></i> Delete
-                    </button> -->
+                    <div class="gf-section-label">Description / Content</div>
+                    <div class="gf-description">{{ document.description }}</div>
 
-                    {% if document.sender == request.user %}
-                        <button class="btn btn-outline-danger flex-grow-0"
-                                data-bs-toggle="modal" data-bs-target="#deleteModal">
-                            <i class="bi bi-trash me-1"></i> Delete
-                        </button>
-                    {% endif %}
-
-
-
+                    <div class="gf-meta-row">
+                        <div class="gf-meta-item">
+                            <div class="gf-meta-label">Sender</div>
+                            <div class="gf-meta-value">
+                                <i class="bi bi-person-fill"></i>
+                                {{ document.sender.get_full_name|default:"N/A" }}
+                            </div>
+                        </div>
+                        <div class="gf-meta-item">
+                            <div class="gf-meta-label">Priority</div>
+                            <div class="gf-meta-value">
+                                {% if document.priority == 'High' %}
+                                    <span class="tag high-priority-tag"><i class="bi bi-exclamation-circle-fill"></i>High</span>
+                                {% elif document.priority == 'Medium' %}
+                                    <span class="tag medium-priority-tag"><i class="bi bi-dash-circle-fill"></i>Medium</span>
+                                {% else %}
+                                    <span class="tag low-priority-tag"><i class="bi bi-check-circle-fill"></i>Low</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="gf-meta-item">
+                            <div class="gf-meta-label">Date Created</div>
+                            <div class="gf-meta-value">
+                                <i class="bi bi-calendar3"></i>
+                                {{ document.created_at|date:"M d, Y · h:i A" }}
+                            </div>
+                        </div>
+                        <div class="gf-meta-item">
+                            <div class="gf-meta-label">Document Origin</div>
+                            <div class="gf-meta-value">
+                                <i class="bi bi-building"></i>
+                                {{ document.current_office.get_full_name|default:"N/A" }}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-
-            <div class="layout-row">
-                
-                <div class="left-column">
-                    
-                    <div class="doc-card mb-3 p-4">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="custom-badge">{{ document.tracking_id }}</span>
-
-                            
-
-                            {% if document.status != "Completed" %}
-                               <button class="btn btn-violet text-white flex-grow-0 btn-sm"
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#addStatusModal"
-                                    data-document-id="{{ document.pk }}">
-                                    <i class="bi bi-clock-history me-1"></i> Add Status
-                                </button> 
-                            {% endif %}
-                            
-                        </div>
-                        
-                        <h4 class="document-title">{{ document.title }}</h4>
-
-                        <p class="summary-title">Description / Content</p>
-                        <div class="summary-box">
-                            {{ document.description }}
-                        </div>
-
-                       <div class="row mt-4 sender-target-row">
-                            <div class="col-md-6">
-                                <div class="info-label-value">
-                                    <span class="info-label">Sender</span>
-                                    <span class="info-value">{{ document.sender.get_full_name|default:"N/A" }}</span>
-                                </div>
-                            </div>
-                            <!-- <div class="col-md-6">
-                                <div class="info-label-value">
-                                    <span class="info-label">Target Department</span>
-                                    <span class="info-value">{{ document.target_department }}</span>
-                                </div>
-                            </div> -->
-                        </div>
-                    </div>
-
-                    <div class="history-box p-4">
-                        <h6 class="mb-3">Tracking History</h6>
-
-                        {% for entry in history %}
-                        <div class="history-item">
-                            <div class="d-flex align-items-start">
-                                <!-- Dot color: blue for latest entry -->
-                                <span class="dot {% if forloop.first %}green{% else %}gray{% endif %} mt-1 me-2"></span>
-
-                                <div>
-                                    <strong class="status-text">{{ entry.action }}</strong>
-                                    <div class="text-secondary small department-text">
-                                        {% if entry.action == "Forwarded" %}
-                                            {{ entry.to_office.get_full_name|default:"N/A" }}
-                                        {% else %}
-                                            {{ entry.performed_by.get_full_name|default:"N/A" }}
-                                        {% endif %}
-                                    </div>
-                                    {% if entry.note %}
-                                        <div class="text-muted small fst-italic remarks-text">"{{ entry.note }}"</div>
+            <!-- Tracking History Card -->
+            <div class="gf-card">
+                <div class="gf-card-header">
+                    <div class="gf-card-icon blue"><i class="bi bi-clock-history"></i></div>
+                    <span class="gf-card-title">Tracking History</span>
+                </div>
+                <div class="gf-history-list">
+                    {% for entry in history %}
+                    <div class="gf-history-item">
+                        <div class="gf-history-left">
+                            <div class="gf-history-dot {% if forloop.first %}green{% else %}gray{% endif %}"></div>
+                            <div>
+                                <div class="gf-history-action">{{ entry.action }}</div>
+                                <div class="gf-history-sub">
+                                    {% if entry.action == "Forwarded" %}
+                                        <i class="bi bi-arrow-right" style="font-size:10px;"></i>
+                                        {{ entry.to_office.get_full_name|default:"N/A" }}
+                                    {% else %}
+                                        {{ entry.performed_by.get_full_name|default:"N/A" }}
                                     {% endif %}
                                 </div>
-                            </div>
-                            <div class="text-muted small timestamp-text">
-                                {{ entry.timestamp|date:"m/d/Y, h:i:s A" }}
-                            </div>
-                        </div>
-                        {% empty %}
-                            <p>No history available.</p>
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <div class="right-column">
-                    <div class="card status-box p-3">
-                        <div class="d-flex align-items-center">
-                             <!-- Icon container -->
-                            <div class="status-icon-container me-3 d-flex align-items-center justify-content-center">
-                                <i class="bi bi-buildings"></i>
-                            </div>
-
-                            <!-- Text -->
-                            <div>
-                                <small class="text-muted d-block">Current Status</small>
-                                <h4 class="mb-0">{{ document.status }}</h4>
+                                {% if entry.note %}
+                                <div class="gf-history-note">"{{ entry.note }}"</div>
+                                {% endif %}
                             </div>
                         </div>
-
-                        <hr class="border-secondary opacity-25 my-3">
-
-                        <div class="d-flex align-items-center">
-                            <div class="status-icon me-3">
-                                <i class="bi bi-geo-alt-fill"></i>
-                            </div>
-                            <div>
-                                <small class="text-muted d-block">Location</small>
-                                <h5 class="mb-0">{{ document.current_office.get_full_name|default:"N/A" }}</h5>
-                            </div>
+                        <div class="gf-history-time">
+                            {{ entry.timestamp|date:"M d, Y" }}<br>
+                            <span style="color:#d1d9e0;">{{ entry.timestamp|date:"h:i A" }}</span>
                         </div>
                     </div>
+                    {% empty %}
+                    <div style="text-align:center;padding:32px;color:#94a3b8;font-size:13px;">
+                        <i class="bi bi-clock" style="display:block;font-size:24px;margin-bottom:8px;color:#d1d9e0;"></i>
+                        No history available.
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
+
         </div>
 
-    </div>
+        <!-- RIGHT COLUMN -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
 
-    <!-- FINALIZE DOCUMENT MODAL -->
-    <div class="modal fade" id="completeModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 bg-transparent">
+            <!-- Status Card -->
+            <div class="gf-card gf-status-card">
+                <div class="gf-card-header">
+                    <div class="gf-card-icon orange"><i class="bi bi-activity"></i></div>
+                    <span class="gf-card-title">Document Status</span>
+                </div>
 
-                <!-- Modal body card -->
-                <div class="modal-body p-4 bg-white rounded shadow text-center mx-auto" style="max-width: 24rem;">
-
-                    <!-- Icon circle -->
-                    <div class="d-flex align-items-center justify-content-center bg-success bg-opacity-10 rounded-circle mx-auto mb-3" 
-                        style="width: 64px; height: 64px;">
-                        <i class="bi bi-archive text-success fs-2"></i>
+                <!-- Current Status -->
+                <div class="gf-status-block">
+                    <div class="gf-status-icon-wrap
+                        {% if document.status == 'Completed' %}teal
+                        {% elif document.status == 'In Transit' %}blue
+                        {% elif document.status == 'Received' %}green
+                        {% else %}orange{% endif %}">
+                        {% if document.status == 'Completed' %}
+                            <i class="bi bi-check2-all"></i>
+                        {% elif document.status == 'In Transit' %}
+                            <i class="bi bi-send-fill"></i>
+                        {% elif document.status == 'Received' %}
+                            <i class="bi bi-inbox-fill"></i>
+                        {% elif document.status == 'Pending' %}
+                            <i class="bi bi-hourglass-split"></i>
+                        {% elif document.status == 'Returned' %}
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        {% else %}
+                            <i class="bi bi-archive-fill"></i>
+                        {% endif %}
                     </div>
-
-                    <!-- Title -->
-                    <h5 class="fw-bold mb-2">Finalize Document?</h5>
-
-                    <!-- Description -->
-                    <p class="text-muted mb-4">This document will be marked as Completed and moved to the archive records.</p>
-
-                    <!-- Buttons -->
-                    <div class="d-flex justify-content-center gap-2">
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                        
-                        <form method="POST" action="{% url 'complete_document' document.pk %}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-success fw-bold">Archive Document</button>
-                        </form>
+                    <div>
+                        <div class="gf-status-sub">Current Status</div>
+                        <div class="gf-status-val">
+                            {% if document.status == 'Pending' %}
+                                <span class="tag pending-tag"><i class="bi bi-hourglass-split"></i>Pending</span>
+                            {% elif document.status == 'In Transit' %}
+                                <span class="tag in-transit-tag"><i class="bi bi-send-fill"></i>In Transit</span>
+                            {% elif document.status == 'Received' %}
+                                <span class="tag received-tag"><i class="bi bi-check-circle-fill"></i>Received</span>
+                            {% elif document.status == 'Completed' %}
+                                <span class="tag completed-tag"><i class="bi bi-check2-all"></i>Completed</span>
+                            {% elif document.status == 'Returned' %}
+                                <span class="tag returned-tag"><i class="bi bi-arrow-return-left"></i>Returned</span>
+                            {% else %}
+                                <span class="tag archived-tag"><i class="bi bi-archive-fill"></i>{{ document.status }}</span>
+                            {% endif %}
+                        </div>
                     </div>
-
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-    <!-- Delete Modal -->
-    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">Delete Document</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
-                <div class="modal-body">
-                    <p>Are you sure you want to delete this document?</p>
-                    <p class="fw-bold">{{ document.tracking_id }} — {{ document.title }}</p>
-                    <p class="text-muted">This action cannot be undone.</p>
-                </div>
-
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <form method="POST" action="{% url 'delete_document' document.id %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger">Yes, Delete</button>
-                    </form>
+                <!-- Location -->
+                <div class="gf-status-block">
+                    <div class="gf-status-icon-wrap blue">
+                        <i class="bi bi-geo-alt-fill"></i>
+                    </div>
+                    <div>
+                        <div class="gf-status-sub">Current Location</div>
+                        <div class="gf-status-val" style="font-size:13.5px;">
+                            {{ document.current_office.get_full_name|default:"N/A" }}
+                        </div>
+                    </div>
                 </div>
 
             </div>
+
         </div>
     </div>
+</div>
 
-    <!-- FORWARD DOCUMENT MODAL -->
-    <div class="modal fade" id="forwardModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <form method="POST" action="">
-                    {% csrf_token %}
-                    
-                    <div class="modal-header bg-success text-white">
-                        <h5 class="modal-title">Forward Document</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
 
-                    <div class="modal-body">
+<!-- ════════════════════════════════════════════════════
+     COMPLETE MODAL
+     ════════════════════════════════════════════════════ -->
+<div class="gf-modal-overlay" id="completeModal">
+    <div class="gf-modal sm">
+        <div class="gf-confirm-body">
+            <div class="gf-confirm-icon green"><i class="bi bi-check2-all"></i></div>
+            <div class="gf-confirm-title">Finalize Document?</div>
+            <p class="gf-confirm-msg">
+                This will mark <strong>{{ document.title }}</strong> as
+                Completed and move it to archive records.
+            </p>
+        </div>
+        <div class="gf-modal-footer" style="justify-content:center;gap:12px;padding-top:16px;">
+            <button class="gf-mfooter-cancel" onclick="closeModal('completeModal')">Cancel</button>
+            <form method="POST" action="{% url 'complete_document' document.pk %}" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit" class="gf-mfooter-green">
+                    <i class="bi bi-check2-all" style="margin-right:5px;"></i>Yes, Complete
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
 
-                        <!-- Select User/Office -->
-                        <label class="form-label">Forward To (Office/User)</label>
-                        <select name="new_office" class="form-select" required>
+
+<!-- ════════════════════════════════════════════════════
+     DELETE MODAL
+     ════════════════════════════════════════════════════ -->
+<div class="gf-modal-overlay" id="deleteModal">
+    <div class="gf-modal sm">
+        <div class="gf-confirm-body">
+            <div class="gf-confirm-icon red"><i class="bi bi-trash-fill"></i></div>
+            <div class="gf-confirm-title">Delete Document?</div>
+            <p class="gf-confirm-msg">
+                Are you sure you want to delete<br>
+                <strong>{{ document.tracking_id }} — {{ document.title }}</strong>?<br>
+                This action cannot be undone.
+            </p>
+        </div>
+        <div class="gf-modal-footer" style="justify-content:center;gap:12px;padding-top:16px;">
+            <button class="gf-mfooter-cancel" onclick="closeModal('deleteModal')">Cancel</button>
+            <form method="POST" action="{% url 'delete_document' document.id %}" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit" class="gf-mfooter-red">
+                    <i class="bi bi-trash-fill" style="margin-right:5px;"></i>Yes, Delete
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════
+     RETRACT MODAL
+     ════════════════════════════════════════════════════ -->
+<div class="gf-modal-overlay" id="retractModal">
+    <div class="gf-modal sm">
+        <div class="gf-confirm-body">
+            <div class="gf-confirm-icon red"><i class="bi bi-arrow-repeat"></i></div>
+            <div class="gf-confirm-title">Retract Document?</div>
+            <p class="gf-confirm-msg">
+                This will pull back the document from the recipient's queue
+                and return it to your possession.
+            </p>
+        </div>
+        <div class="gf-modal-footer" style="justify-content:center;gap:12px;padding-top:16px;">
+            <button class="gf-mfooter-cancel" onclick="closeModal('retractModal')">Cancel</button>
+            <form method="POST" action="{% url 'retract_document' document.pk %}" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit" class="gf-mfooter-red">
+                    <i class="bi bi-arrow-repeat" style="margin-right:5px;"></i>Yes, Retract
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════
+     FORWARD MODAL  (Bootstrap — keep for dept select)
+     ════════════════════════════════════════════════════ -->
+<div class="modal fade" id="forwardModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:14px;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif;">
+            <form method="POST" action="{% url 'forward_document' document.pk %}">
+                {% csrf_token %}
+                <div class="modal-header" style="background:#2563eb;color:#fff;padding:16px 20px;">
+                    <h5 class="modal-title" style="font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;">
+                        <i class="bi bi-send-fill"></i> Forward Document
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="padding:20px;">
+                    <div class="gf-form-group">
+                        <label class="gf-form-label">Forward To (Office / User)</label>
+                        <select name="new_office" class="gf-form-control" required>
                             <option value="">Select Office</option>
-
                             {% for department, users in departments.items %}
                             <optgroup label="{{ department }}">
                                 {% for u in users %}
-                                <option value="{{ u.id }}">
-                                    {{ u.get_full_name }}
-                                </option>
+                                <option value="{{ u.id }}">{{ u.get_full_name }}</option>
                                 {% endfor %}
                             </optgroup>
                             {% endfor %}
                         </select>
-
-                        <!-- Note -->
-                        <label class="form-label mt-3">Note (Optional)</label>
-                        <textarea name="note" class="form-control" rows="3"></textarea>
-
                     </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Cancel</button>
-                        <button class="btn btn-outline-success">Forward</button>
+                    <div class="gf-form-group">
+                        <label class="gf-form-label">Note <span style="font-weight:400;text-transform:none;">(Optional)</span></label>
+                        <textarea name="note" class="gf-form-control" rows="3"></textarea>
                     </div>
-                </form>
-            </div>
+                </div>
+                <div class="modal-footer" style="background:#fafbfc;border-top:1px solid #f0f4f8;padding:14px 20px;">
+                    <button type="button" class="gf-mfooter-cancel" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="gf-mfooter-blue">
+                        <i class="bi bi-send-fill" style="margin-right:5px;"></i>Forward
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
+</div>
 
-    <!-- RETURN DOCUMENT MODAL -->
-    <div class="modal fade" id="returnModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
 
-                <form method="POST" action="{% url 'return_document' document.pk %}">
-                    {% csrf_token %}
-
-                    <div class="modal-header bg-success text-white">
-                        <h5 class="modal-title">
-                            <i class="bi bi-arrow-counterclockwise me-1"></i>
-                            Return Document
-                        </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-
-                    <div class="modal-body">
-
-                        <!-- Return To -->
-                        <label class="form-label">Return To</label>
-                        <select name="return_to" class="form-select" required>
-                            <option value="">-- Select Office --</option>
+<!-- ════════════════════════════════════════════════════
+     RETURN MODAL
+     ════════════════════════════════════════════════════ -->
+<div class="modal fade" id="returnModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:14px;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif;">
+            <form method="POST" action="{% url 'return_document' document.pk %}">
+                {% csrf_token %}
+                <div class="modal-header" style="background:#7c3aed;color:#fff;padding:16px 20px;">
+                    <h5 class="modal-title" style="font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;">
+                        <i class="bi bi-arrow-counterclockwise"></i> Return Document
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="padding:20px;">
+                    <div class="gf-form-group">
+                        <label class="gf-form-label">Return To</label>
+                        <select name="return_to" class="gf-form-control" required>
+                            <option value="">— Select Office —</option>
                             {% for office in return_offices %}
-                                <option value="{{ office.id }}">
-                                    {{ office.get_full_name }}
-                                </option>
+                            <option value="{{ office.id }}">{{ office.get_full_name }}</option>
                             {% endfor %}
                         </select>
-
-                        <!-- Note -->
-                        <label class="form-label mt-3">Reason for Return</label>
-                        <textarea name="note"
-                                class="form-control"
-                                rows="3"
-                                placeholder="Enter reason for returning this document..."></textarea>
-
                     </div>
-
-                    <div class="modal-footer">
-                        <button type="button"
-                                class="btn btn-outline-secondary"
-                                data-bs-dismiss="modal">
-                            Cancel
-                        </button>
-                        <button type="submit"
-                                class="btn btn-outline-success">
-                            Confirm Return
-                        </button>
+                    <div class="gf-form-group">
+                        <label class="gf-form-label">Reason for Return</label>
+                        <textarea name="note" class="gf-form-control" rows="3"
+                                  placeholder="Enter reason for returning this document..."></textarea>
                     </div>
-
-                </form>
-
-            </div>
+                </div>
+                <div class="modal-footer" style="background:#fafbfc;border-top:1px solid #f0f4f8;padding:14px 20px;">
+                    <button type="button" class="gf-mfooter-cancel" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="gf-mfooter-purple">
+                        <i class="bi bi-arrow-counterclockwise" style="margin-right:5px;"></i>Confirm Return
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     ADD STATUS MODAL
+     ════════════════════════════════════════════════════ -->
+<div class="gf-modal-overlay" id="statusModal">
+    <div class="gf-modal">
+        <div class="gf-modal-header">
+            <div class="gf-modal-title">
+                <i class="bi bi-clock-history" style="color:#7c3aed;"></i> Add Status Update
+            </div>
+            <button class="gf-modal-close" onclick="closeModal('statusModal')">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <form method="POST" action="{% url 'add_status' document.pk %}">
+            {% csrf_token %}
+            <div class="gf-modal-body">
+                <!-- <div class="gf-form-group">
+                    <label class="gf-form-label">Status / Action</label>
+                    <input type="text" name="action" class="gf-form-control"
+                           placeholder="e.g. Under Review, Approved..." required>
+                </div> -->
+                <div class="gf-form-group">
+                    <label class="gf-form-label">Note <span style="font-weight:400;text-transform:none;">(Optional)</span></label>
+                    <textarea name="note" class="gf-form-control" rows="3"
+                              placeholder="Add any relevant remarks..."></textarea>
+                </div>
+            </div>
+            <div class="gf-modal-footer">
+                <button type="button" class="gf-mfooter-cancel" onclick="closeModal('statusModal')">Cancel</button>
+                <button type="submit" class="gf-mfooter-purple">
+                    <i class="bi bi-clock-history" style="margin-right:5px;"></i> Add Status
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     EDIT DOCUMENT MODAL
+     ════════════════════════════════════════════════════ -->
+<div class="modal fade" id="editDocumentModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:14px;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif;">
+            <form method="POST" action="{% url 'edit_document' document.pk %}">
+                {% csrf_token %}
+                <div class="modal-header" style="background:#d97706;color:#fff;padding:16px 20px;">
+                    <h5 class="modal-title" style="font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;">
+                        <i class="bi bi-pencil-fill"></i> Edit Document
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="padding:20px;">
+
+                    <div class="gf-form-group">
+                        <label class="gf-form-label">Document Title</label>
+                        <input type="text" name="title" class="gf-form-control"
+                               value="{{ document.title }}" required>
+                    </div>
+
+                    <div class="gf-form-group">
+                        <label class="gf-form-label">Priority Level</label>
+                        <select name="priority" class="gf-form-control">
+                            <option value="High"   {% if document.priority == 'High'   %}selected{% endif %}>High — Urgent</option>
+                            <option value="Medium" {% if document.priority == 'Medium' %}selected{% endif %}>Medium — Standard</option>
+                            <option value="Low"    {% if document.priority == 'Low'    %}selected{% endif %}>Low — Routine</option>
+                        </select>
+                    </div>
+
+                    <div class="gf-form-group">
+                        <label class="gf-form-label">Description / Content</label>
+                        <textarea name="description" class="gf-form-control"
+                                  rows="5">{{ document.description }}</textarea>
+                    </div>
+
+                </div>
+                <div class="modal-footer" style="background:#fafbfc;border-top:1px solid #f0f4f8;padding:14px 20px;">
+                    <button type="button" class="gf-mfooter-cancel" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit"
+                            style="padding:9px 20px;border-radius:9px;border:none;background:#d97706;color:#fff;font-size:13px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;box-shadow:0 2px 8px rgba(245,158,11,.25);">
+                        <i class="bi bi-floppy-fill" style="margin-right:5px;"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 
 <script src="{% static 'js/document_detail.js' %}"></script>
+
+<script>
+/* Custom modals */
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.gf-modal-overlay').forEach(function(o) {
+    o.addEventListener('click', function(e) {
+        if (e.target === o) o.classList.remove('open');
+    });
+});
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape')
+        document.querySelectorAll('.gf-modal-overlay.open').forEach(function(o) {
+            o.classList.remove('open');
+        });
+});
+</script>
 
 {% endblock %}

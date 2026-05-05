@@ -27,9 +27,26 @@ class UserProfile(models.Model):
         blank=True,
         null=True,
     )
+    position = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+    )
 
     def __str__(self):
         return self.user.get_full_name() or self.user.username
+
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    if hasattr(instance, 'userprofile'):
+        instance.userprofile.save()
 
 
 class Document(models.Model):

@@ -120,6 +120,14 @@
     font-weight: 700;
     color: #343a40;
     margin-bottom: 5px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.2;
+    height: 2.4em; /* Ensures consistent height for 2 lines */
 }
 
 .document-description {
@@ -127,6 +135,12 @@
     color: #6c757d;
     margin-bottom: 10px;
     min-height: 48px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .document-meta {

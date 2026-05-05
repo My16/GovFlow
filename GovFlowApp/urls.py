@@ -29,6 +29,12 @@ urlpatterns = [
     path("document/<int:document_id>/add_status/", views.add_status, name="add_status"),
     # path("reports/api/<str:report_type>/", views.document_report_api, name="document_report_api"),
     path("reports/api/<str:report_type>/", views.document_report_api, name="document_report_api"),
+    path('users/',                 views.user_management,        name='user_management'),
+    path('users/add/',             views.user_management_add,    name='user_management_add'),
+    path('users/<int:pk>/edit/',   views.user_management_edit,   name='user_management_edit'),
+    path('users/<int:pk>/delete/', views.user_management_delete, name='user_management_delete'),
+    path('users/<int:pk>/toggle/', views.user_management_toggle, name='user_management_toggle'),
+    path('settings/', views.settings, name='settings'),
 ]
 
 if settings.DEBUG:

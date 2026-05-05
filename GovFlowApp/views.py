@@ -1,25 +1,22 @@
 from django.shortcuts import render, redirect, get_object_or_404, HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from .forms import UserProfileForm
-from .models import Document, DocumentHistory, Notification
-from django.core.paginator import Paginator
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
-from collections import defaultdict
+from django.core.paginator import Paginator
 from django.db.models import Q, OuterRef, Subquery
 from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
-from datetime import timedelta
-import datetime
 from datetime import timedelta, datetime
+from collections import defaultdict
+import datetime as datetime_module
 import pandas as pd
 from io import BytesIO
 from xhtml2pdf import pisa
-from django.template.loader import render_to_string
-from django.db.models import Q
+from .forms import UserProfileForm
+from .models import Document, DocumentHistory, Notification, UserProfile
 
 # Create your views here.
 
@@ -49,6 +46,268 @@ def create_user(request):
     return render(request, 'create_user.html', context)
 
 
+
+
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
+from django.contrib import messages
+from django.db.models import Q
+
+
+def is_admin(user):
+    return user.is_staff or user.is_superuser
+
+
+@login_required(login_url='loginpage')
+def user_management(request):
+    """
+    List all system users. Only admins can add/edit/delete;
+    regular staff see the list read-only.
+    """
+    search_query = request.GET.get('search', '').strip()
+
+    users = User.objects.select_related('userprofile').all().order_by(
+        'first_name', 'last_name'
+    )
+
+    if search_query:
+        users = users.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query)  |
+            Q(username__icontains=search_query)   |
+            Q(email__icontains=search_query)      |
+            Q(userprofile__department__icontains=search_query) |
+            Q(userprofile__position__icontains=search_query)
+        )
+
+    total_users    = users.count()
+    active_users   = users.filter(is_active=True).count()
+    inactive_users = users.filter(is_active=False).count()
+    admin_users    = users.filter(is_staff=True).count()
+
+    for user in users:
+        UserProfile.objects.get_or_create(user=user)
+
+    context = {
+        'users':             users,
+        'total_users':       total_users,
+        'active_users':      active_users,
+        'inactive_users':    inactive_users,
+        'admin_users':       admin_users,
+        'search_query':      search_query,
+        'department_choices': UserProfile.DEPARTMENT_CHOICES,
+    }
+    return render(request, 'user_management.html', context)
+
+
+@login_required(login_url='loginpage')
+@user_passes_test(is_admin, login_url='dashboard')
+def user_management_add(request):
+    """Create a new user from the Add User modal."""
+    if request.method != 'POST':
+        return redirect('user_management')
+
+    first_name   = request.POST.get('first_name', '').strip()
+    last_name    = request.POST.get('last_name',  '').strip()
+    username     = request.POST.get('username',   '').strip()
+    email        = request.POST.get('email',      '').strip()
+    department   = request.POST.get('department', '').strip()
+    position     = request.POST.get('position',   '').strip()
+    password     = request.POST.get('password',   '')
+    confirm_pw   = request.POST.get('confirm_password', '')
+    is_staff_val = request.POST.get('is_staff', '0') == '1'
+
+    # Basic validation
+    if not all([first_name, last_name, username, password]):
+        messages.error(request, "Please fill in all required fields.")
+        return redirect('user_management')
+
+    if password != confirm_pw:
+        messages.error(request, "Passwords do not match.")
+        return redirect('user_management')
+
+    if len(password) < 8:
+        messages.error(request, "Password must be at least 8 characters.")
+        return redirect('user_management')
+
+    if User.objects.filter(username=username).exists():
+        messages.error(request, f"Username '{username}' is already taken.")
+        return redirect('user_management')
+
+    # Create user
+    user = User.objects.create_user(
+        username=username,
+        email=email,
+        password=password,
+        first_name=first_name,
+        last_name=last_name,
+        is_staff=is_staff_val,
+    )
+
+    # Update UserProfile fields for the new user
+    profile, _ = UserProfile.objects.get_or_create(user=user)
+    profile.department = department
+    profile.position = position
+    profile.save()
+
+    messages.success(request, f"User {user.get_full_name()} created successfully.")
+    return redirect('user_management')
+
+
+@login_required(login_url='loginpage')
+@user_passes_test(is_admin, login_url='dashboard')
+def user_management_edit(request, pk):
+    """Edit an existing user from the Edit User modal."""
+    if request.method != 'POST':
+        return redirect('user_management')
+
+    target_user = get_object_or_404(User, pk=pk)
+
+    first_name   = request.POST.get('first_name', '').strip()
+    last_name    = request.POST.get('last_name',  '').strip()
+    email        = request.POST.get('email',      '').strip()
+    department   = request.POST.get('department', '').strip()
+    position     = request.POST.get('position',   '').strip()
+    password     = request.POST.get('password',   '').strip()
+    is_staff_val = request.POST.get('is_staff', '0') == '1'
+    is_active    = 'is_active' in request.POST
+
+    if not all([first_name, last_name]):
+        messages.error(request, "First and last name are required.")
+        return redirect('user_management')
+
+    # Prevent admin from revoking their own staff status
+    if target_user == request.user and not is_staff_val:
+        messages.error(request, "You cannot remove your own admin privileges.")
+        return redirect('user_management')
+
+    target_user.first_name = first_name
+    target_user.last_name  = last_name
+    target_user.email      = email
+    target_user.is_staff   = is_staff_val
+    target_user.is_active  = is_active
+
+    if password:
+        if len(password) < 8:
+            messages.error(request, "New password must be at least 8 characters.")
+            return redirect('user_management')
+        target_user.set_password(password)
+
+    target_user.save()
+
+    # Update or create the user's profile fields
+    profile, _ = UserProfile.objects.get_or_create(user=target_user)
+    profile.department = department
+    profile.position = position
+    profile.save()
+
+    messages.success(request, f"User {target_user.get_full_name()} updated successfully.")
+    return redirect('user_management')
+
+
+@login_required(login_url='loginpage')
+@user_passes_test(is_admin, login_url='dashboard')
+def user_management_delete(request, pk):
+    """Delete a user (POST only)."""
+    if request.method != 'POST':
+        return redirect('user_management')
+
+    target_user = get_object_or_404(User, pk=pk)
+
+    if target_user == request.user:
+        messages.error(request, "You cannot delete your own account.")
+        return redirect('user_management')
+
+    full_name = target_user.get_full_name() or target_user.username
+    target_user.delete()
+
+    messages.success(request, f"User '{full_name}' has been deleted.")
+    return redirect('user_management')
+
+
+@login_required(login_url='loginpage')
+@user_passes_test(is_admin, login_url='dashboard')
+def user_management_toggle(request, pk):
+    """AJAX endpoint: toggle is_active on a user."""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid method.'}, status=405)
+
+    target_user = get_object_or_404(User, pk=pk)
+
+    if target_user == request.user:
+        return JsonResponse({'success': False, 'error': 'You cannot deactivate yourself.'})
+
+    target_user.is_active = not target_user.is_active
+    target_user.save()
+
+    action = "activated" if target_user.is_active else "deactivated"
+    name   = target_user.get_full_name() or target_user.username
+
+    return JsonResponse({
+        'success':   True,
+        'is_active': target_user.is_active,
+        'message':   f"User '{name}' has been {action}.",
+    })
+
+
+@login_required(login_url='loginpage')
+def settings(request):
+    """User settings page for updating personal profile."""
+    if request.method == 'POST':
+        first_name   = request.POST.get('first_name', '').strip()
+        last_name    = request.POST.get('last_name',  '').strip()
+        email        = request.POST.get('email',      '').strip()
+        department   = request.POST.get('department', '').strip()
+        position     = request.POST.get('position',   '').strip()
+        current_pw   = request.POST.get('current_password', '').strip()
+        password     = request.POST.get('password',   '').strip()
+        confirm_pw   = request.POST.get('confirm_password', '').strip()
+
+        if not all([first_name, last_name]):
+            messages.error(request, "First and last name are required.")
+            return redirect('settings')
+
+        # If password change is requested, validate current password
+        if password:
+            if not current_pw:
+                messages.error(request, "Current password is required to change password.")
+                return redirect('settings')
+            if not request.user.check_password(current_pw):
+                messages.error(request, "Current password is incorrect.")
+                return redirect('settings')
+            if password != confirm_pw:
+                messages.error(request, "New passwords do not match.")
+                return redirect('settings')
+            if len(password) < 8:
+                messages.error(request, "New password must be at least 8 characters.")
+                return redirect('settings')
+
+        request.user.first_name = first_name
+        request.user.last_name  = last_name
+        request.user.email      = email
+
+        if password:
+            request.user.set_password(password)
+
+        request.user.save()
+
+        # Update profile
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        profile.department = department
+        profile.position = position
+        profile.save()
+
+        messages.success(request, "Your settings have been updated successfully.")
+        return redirect('settings')
+
+    context = {
+        'department_choices': UserProfile.DEPARTMENT_CHOICES,
+    }
+    return render(request, 'settings.html', context)
+
+
 def loginpage(request):
 
     if request.method == "POST":
@@ -68,10 +327,12 @@ def loginpage(request):
                 request.session.set_expiry(0)  # closes on browser close
 
             # Redirect based on user type
-            if user.is_staff:
-                return redirect('create_user')   # admin sees create user page
-            else:
-                return redirect('dashboard')     # regular user goes to dashboard
+            # if user.is_staff:
+            #     return redirect('create_user')   # admin sees create user page
+            # else:
+            #     return redirect('dashboard')     # regular user goes to dashboard
+
+            return redirect('dashboard')
 
         else:
             messages.error(request, "Invalid username or password.")
@@ -91,7 +352,15 @@ def homepage(request):
     if request.user.is_staff:
         return redirect('create_user')
     
-    context = {}
+    # Fetch unread notifications for the current user
+    notifications = Notification.objects.filter(
+        recipient=request.user,
+        is_read=False
+    ).order_by("-created_at")[:5]
+    
+    context = {
+        'notifications': notifications
+    }
 
     return render(request, 'homepage.html', context)
 
@@ -194,14 +463,23 @@ def all_documents(request):
         ).order_by('-created_at')
 
     # Filters
-    status_filter = request.GET.get('status', 'All')
-    priority_filter = request.GET.get('priority', 'All')
-    search_query = request.GET.get('q', '').strip()  # search query
+    status_filter = request.GET.get('status', '')
+    priority_filter = request.GET.get('priority', '')
+    search_query = request.GET.get('search', '').strip()
+    per_page = request.GET.get('per_page', 10)
+
+    # Convert per_page to int
+    try:
+        per_page = int(per_page)
+        if per_page not in [10, 25, 50, 100]:
+            per_page = 10
+    except ValueError:
+        per_page = 10
 
     # Apply filters
-    if priority_filter != 'All':
+    if priority_filter and priority_filter != 'All':
         documents = documents.filter(priority=priority_filter)
-    if status_filter != 'All':
+    if status_filter and status_filter != 'All':
         documents = documents.filter(status=status_filter)
 
     # Apply search only if >=3 characters
@@ -212,12 +490,29 @@ def all_documents(request):
             Q(sender__first_name__icontains=search_query) |
             Q(sender__last_name__icontains=search_query)
         )
-    else:
-        search_query = ""  # clear so template knows no search
+    elif search_query and len(search_query) < 3:
+        search_query = ""
+
+    # Store original queryset for summary stats (before pagination)
+    all_documents_queryset = documents
+    
+    # Get all status counts for summary cards
+    total_count = all_documents_queryset.count()
+    pending_count = all_documents_queryset.filter(status='Pending').count()
+    in_transit_count = all_documents_queryset.filter(status='In Transit').count()
+    received_count = all_documents_queryset.filter(status='Received').count()
+    returned_count = all_documents_queryset.filter(status='Returned').count()
+    completed_count = all_documents_queryset.filter(status='Completed').count()
+    high_priority_count = all_documents_queryset.filter(priority='High').count()
+    
+    # For alert panels (get recent items)
+    high_priority_docs = all_documents_queryset.filter(priority='High').order_by('-created_at')[:5]
+    pending_docs = all_documents_queryset.filter(status='Pending').order_by('-created_at')[:5]
+    in_transit_docs = all_documents_queryset.filter(status='In Transit').order_by('-created_at')[:5]
 
     # Pagination
     page_number = request.GET.get('page', 1)
-    paginator = Paginator(documents, 15)  # 15 documents per page
+    paginator = Paginator(documents, per_page)
     page_obj = paginator.get_page(page_number)
 
     # GROUP USERS BY DEPARTMENT
@@ -229,14 +524,28 @@ def all_documents(request):
         if hasattr(u, "userprofile") and u.userprofile.department:
             departments[u.userprofile.department].append(u)
 
-
     context = {
-        'documents': page_obj,  # pass page object
+        'documents': page_obj,
         'status_filter': status_filter,
         'priority_filter': priority_filter,
         'paginator': paginator,
         'departments': dict(departments),
         'search_query': search_query,
+        'per_page': per_page,
+        
+        # Summary stats for cards
+        'total_count': total_count,
+        'pending_count': pending_count,
+        'in_transit_count': in_transit_count,
+        'received_count': received_count,
+        'returned_count': returned_count,
+        'completed_count': completed_count,
+        'high_priority_count': high_priority_count,
+        
+        # Alert panel data
+        'high_priority_docs': high_priority_docs,
+        'pending_docs': pending_docs,
+        'in_transit_docs': in_transit_docs,
     }
     return render(request, 'all_documents.html', context)
 
@@ -289,6 +598,9 @@ def completed_documents(request):
             Q(status='Completed', sender=user) | Q(id__in=completed_docs_ids)
         ).order_by('-created_at')
 
+    # Store unfiltered qs for counts (before priority/sender filters)
+    base_qs = documents_qs
+
     # Apply priority filter
     if priority_filter != 'All':
         documents_qs = documents_qs.filter(priority=priority_filter)
@@ -310,7 +622,6 @@ def completed_documents(request):
     page_number = request.GET.get('page')
     documents = paginator.get_page(page_number)
 
-    # Admins see all senders; regular users see only senders of completed docs
     if user.is_staff or user.is_superuser:
         all_senders = User.objects.filter(document__status='Completed').distinct()
     else:
@@ -322,6 +633,9 @@ def completed_documents(request):
         'search_query': search_query,
         'sender_filter': sender_filter,
         'all_senders': all_senders,
+        'high_count': base_qs.filter(priority='High').count(),
+        'medium_count': base_qs.filter(priority='Medium').count(),
+        'low_count': base_qs.filter(priority='Low').count(),
     }
     return render(request, 'completed_documents.html', context)
 

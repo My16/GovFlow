@@ -119,6 +119,9 @@
     color: #1e293b;
     margin-top: 0.25rem;
     margin-bottom: 0.5rem;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 /* Custom badge */

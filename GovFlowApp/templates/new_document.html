@@ -4,64 +4,329 @@
 
 {% block content %}
 
-<link rel="stylesheet" href="{% static 'css/new_document.css' %}">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
-<div class="register-document-page-container">
-    <div class="back-link-container">
-        <a href="{% url 'dashboard' %}" class="back-to-dashboard">
-            ← Back to Dashboard
-        </a>
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Page wrapper ─────────────────────────────────── */
+.gf-page {
+    width: 100%; max-width: 760px;
+    margin: 0 auto; padding: 8px 0 48px;
+}
+
+/* ── Back link ────────────────────────────────────── */
+.gf-back-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; font-weight: 600; color: #64748b;
+    text-decoration: none; margin-bottom: 20px;
+    transition: color .15s, gap .15s;
+    animation: slideUp .3s ease both;
+}
+.gf-back-link:hover { color: #1a2433; gap: 9px; }
+
+/* ── Page header ──────────────────────────────────── */
+.gf-page-header {
+    margin-bottom: 24px;
+    animation: slideUp .35s ease .05s both;
+}
+.gf-page-title {
+    font-size: 22px; font-weight: 800; color: #1a2433; margin: 0 0 4px;
+    display: flex; align-items: center; gap: 10px;
+}
+.gf-page-title i { color: #16a34a; }
+.gf-page-subtitle { font-size: 13px; color: #78909c; font-weight: 500; margin: 0; }
+
+/* ── Form card ────────────────────────────────────── */
+.gf-form-card {
+    background: #fff; border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,.07);
+    border: 1px solid #eef2f7; overflow: hidden;
+    animation: slideUp .4s ease .1s both;
+}
+
+/* ── Card section header ──────────────────────────── */
+.gf-section-header {
+    display: flex; align-items: center; gap: 9px;
+    padding: 16px 24px; border-bottom: 1px solid #f0f4f8;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+.gf-section-icon {
+    width: 34px; height: 34px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0;
+    background: rgba(22,163,74,.12); color: #16a34a;
+}
+.gf-section-title { font-size: 14px; font-weight: 700; color: #1a2433; }
+.gf-section-sub   { font-size: 11.5px; color: #94a3b8; margin-top: 1px; }
+
+/* ── Form body ────────────────────────────────────── */
+.gf-form-body { padding: 28px 24px; }
+
+/* ── Form groups ──────────────────────────────────── */
+.gf-form-group { margin-bottom: 22px; }
+.gf-form-group:last-child { margin-bottom: 0; }
+
+.gf-label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 700; color: #475569;
+    text-transform: uppercase; letter-spacing: .6px;
+    margin-bottom: 8px;
+}
+.gf-label i { font-size: 11px; color: #94a3b8; }
+.gf-label .required {
+    color: #dc2626; font-size: 11px; margin-left: 2px; font-weight: 700;
+}
+
+.gf-input, .gf-select, .gf-textarea {
+    width: 100%; padding: 11px 14px;
+    border: 1.5px solid #e2e8f0; border-radius: 10px;
+    font-size: 13.5px; font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #1a2433; background: #f8fafc; outline: none;
+    transition: border-color .2s, box-shadow .2s, background .2s;
+}
+.gf-input:focus, .gf-select:focus, .gf-textarea:focus {
+    border-color: #16a34a;
+    box-shadow: 0 0 0 3px rgba(22,163,74,.12);
+    background: #fff;
+}
+.gf-input::placeholder, .gf-textarea::placeholder { color: #b0bec5; }
+.gf-input[readonly] {
+    background: #f1f5f9; color: #64748b; cursor: not-allowed;
+    border-color: #e2e8f0;
+}
+.gf-select { cursor: pointer; appearance: auto; }
+.gf-textarea { resize: vertical; min-height: 140px; line-height: 1.6; }
+
+/* ── Two-col grid ─────────────────────────────────── */
+.gf-grid-2 {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+}
+
+/* ── Priority pills ───────────────────────────────── */
+.gf-priority-group { display: flex; gap: 10px; flex-wrap: wrap; }
+.gf-priority-pill  {
+    display: flex; align-items: center; gap: 7px;
+    padding: 9px 16px; border-radius: 10px;
+    border: 1.5px solid #e2e8f0; background: #f8fafc;
+    font-size: 13px; font-weight: 600; color: #64748b;
+    cursor: pointer; transition: all .2s; flex: 1; min-width: 100px;
+    position: relative;
+}
+.gf-priority-pill input[type="radio"] {
+    position: absolute; opacity: 0; width: 0; height: 0;
+}
+.gf-priority-pill:hover { border-color: #cdd5df; background: #f0f4f8; }
+.gf-priority-pill.high.selected   { border-color: #dc2626; background: rgba(239,68,68,.07);  color: #dc2626; }
+.gf-priority-pill.medium.selected { border-color: #d97706; background: rgba(245,158,11,.07); color: #d97706; }
+.gf-priority-pill.low.selected    { border-color: #16a34a; background: rgba(22,163,74,.07);  color: #16a34a; }
+.priority-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.high   .priority-dot { background: #dc2626; }
+.medium .priority-dot { background: #d97706; }
+.low    .priority-dot { background: #16a34a; }
+
+/* ── Divider ──────────────────────────────────────── */
+.gf-divider { border: none; border-top: 1px solid #f0f4f8; margin: 0; }
+
+/* ── Form footer / actions ────────────────────────── */
+.gf-form-footer {
+    display: flex; align-items: center; justify-content: flex-end;
+    gap: 12px; padding: 18px 24px;
+    background: #fafbfc; border-top: 1px solid #f0f4f8;
+}
+.gf-btn-cancel {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 20px; border-radius: 10px;
+    border: 1.5px solid #e2e8f0; background: #fff;
+    color: #64748b; font-size: 13px; font-weight: 600;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    text-decoration: none; cursor: pointer;
+    transition: all .2s;
+}
+.gf-btn-cancel:hover { background: #f0f4f8; border-color: #cdd5df; color: #1a2433; }
+
+.gf-btn-submit {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 24px; border-radius: 10px; border: none;
+    background: #16a34a; color: #fff;
+    font-size: 13px; font-weight: 700;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(22,163,74,.3);
+    transition: background .2s, transform .15s, box-shadow .2s;
+}
+.gf-btn-submit:hover {
+    background: #15803d; transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(22,163,74,.35);
+}
+.gf-btn-submit:active { transform: translateY(0); }
+
+/* ── Char counter ─────────────────────────────────── */
+.gf-field-hint {
+    font-size: 11px; color: #94a3b8; margin-top: 5px;
+    display: flex; justify-content: space-between; align-items: center;
+}
+
+/* ── Responsive ───────────────────────────────────── */
+@media (max-width: 600px) {
+    .gf-grid-2 { grid-template-columns: 1fr; }
+    .gf-priority-group { flex-direction: column; }
+    .gf-page { padding: 8px 4px 48px; }
+}
+</style>
+
+
+<div class="gf-page">
+
+    <!-- Back link -->
+    <a href="{% url 'dashboard' %}" class="gf-back-link">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+
+    <!-- Page header -->
+    <div class="gf-page-header">
+        <h2 class="gf-page-title">
+            <i class="bi bi-file-earmark-plus-fill"></i> Register New Document
+        </h2>
+        <p class="gf-page-subtitle">Fill in the details below to create and track a new document.</p>
     </div>
 
-    <div class="register-form-card">
-        <h3>Register New Document</h3>
-        
-        <form action="#" method="POST" class="document-registration-form">
+    <!-- Form card -->
+    <div class="gf-form-card">
+
+        <!-- Section header -->
+        <div class="gf-section-header">
+            <div class="gf-section-icon"><i class="bi bi-pencil-fill"></i></div>
+            <div>
+                <div class="gf-section-title">Document Information</div>
+                <div class="gf-section-sub">All fields marked with * are required</div>
+            </div>
+        </div>
+
+        <form action="#" method="POST">
             {% csrf_token %}
 
-            <!-- Document Title -->
-            <div class="form-group mb-4">
-                <label for="documentTitle" class="form-label">Document Title</label>
-                <input type="text" id="documentTitle" name="title" class="form-control large-input" 
-                       placeholder="e.g., Annual Budget Report 2025" required>
-            </div>
+            <div class="gf-form-body">
 
-            <!-- Row for Priority and Document Origin -->
-            <div class="row mb-4">
-                <!-- Document Origin (readonly visible) -->
-                <div class="col-md-6 form-group">
-                    <label for="documentOrigin" class="form-label">Document Origin</label>
-                    <input type="text" id="documentOrigin" name="current_office" class="form-control large-input"
-                        value="{{ request.user.get_full_name }}" readonly>
+                <!-- Title -->
+                <div class="gf-form-group">
+                    <label class="gf-label" for="documentTitle">
+                        <i class="bi bi-type"></i> Document Title <span class="required">*</span>
+                    </label>
+                    <input type="text" id="documentTitle" name="title"
+                           class="gf-input"
+                           placeholder="e.g., Annual Budget Report 2025"
+                           required>
                 </div>
 
-                <!-- Priority -->
-                <div class="col-md-6 form-group">
-                    <label for="priorityLevel" class="form-label">Priority Level</label>
-                    <select id="priorityLevel" name="priority" class="form-select large-input">
-                        <option value="High">High - Urgent</option>
-                        <option value="Medium" selected>Medium - Standard</option>
-                        <option value="Low">Low - Routine</option>
-                    </select>
+                <!-- Origin + Priority row -->
+                <div class="gf-grid-2">
+
+                    <!-- Document Origin -->
+                    <div class="gf-form-group" style="margin-bottom:0;">
+                        <label class="gf-label" for="documentOrigin">
+                            <i class="bi bi-building"></i> Document Origin
+                        </label>
+                        <input type="text" id="documentOrigin" name="current_office"
+                               class="gf-input"
+                               value="{{ request.user.get_full_name }}"
+                               readonly>
+                        <div class="gf-field-hint">
+                            <span>Auto-filled from your account</span>
+                        </div>
+                    </div>
+
+                    <!-- Priority -->
+                    <div class="gf-form-group" style="margin-bottom:0;">
+                        <label class="gf-label">
+                            <i class="bi bi-flag-fill"></i> Priority Level <span class="required">*</span>
+                        </label>
+                        <div class="gf-priority-group" id="priorityGroup">
+
+                            <label class="gf-priority-pill high" id="pill-high">
+                                <input type="radio" name="priority" value="High"
+                                       onchange="selectPriority('high')">
+                                <span class="priority-dot"></span> High
+                            </label>
+
+                            <label class="gf-priority-pill medium selected" id="pill-medium">
+                                <input type="radio" name="priority" value="Medium"
+                                       checked onchange="selectPriority('medium')">
+                                <span class="priority-dot"></span> Medium
+                            </label>
+
+                            <label class="gf-priority-pill low" id="pill-low">
+                                <input type="radio" name="priority" value="Low"
+                                       onchange="selectPriority('low')">
+                                <span class="priority-dot"></span> Low
+                            </label>
+
+                        </div>
+                    </div>
+
                 </div>
-            </div>
 
+                <!-- Description -->
+                <div class="gf-form-group" style="margin-top:22px;">
+                    <label class="gf-label" for="documentContent">
+                        <i class="bi bi-text-left"></i> Description / Content <span class="required">*</span>
+                    </label>
+                    <textarea id="documentContent" name="description"
+                              class="gf-textarea"
+                              placeholder="Paste the document content or a detailed description here."
+                              rows="6" required
+                              oninput="updateCharCount(this)"></textarea>
+                    <div class="gf-field-hint">
+                        <span>Provide a clear description so recipients understand the document's purpose.</span>
+                        <span id="charCount" style="color:#b0bec5;">0 chars</span>
+                    </div>
+                </div>
 
-            <!-- Description -->
-            <div class="form-group mb-5">
-                <label for="documentContent" class="form-label">Description / Content</label>
-                <textarea id="documentContent" name="description" class="form-control large-textarea" 
-                          placeholder="Paste the document content or a detailed description here." 
-                          rows="6" required></textarea>
-            </div>
+            </div><!-- /form-body -->
 
-            <div class="form-actions mt-4">
-                <a href="{% url 'dashboard' %}" class="btn btn-outline-danger cancel-btn">Cancel</a>
-                <button type="submit" class="btn btn-outline-success register-btn">
-                    <i class="bi bi-floppy"></i> Register Document
+            <hr class="gf-divider">
+
+            <!-- Footer -->
+            <div class="gf-form-footer">
+                <a href="{% url 'dashboard' %}" class="gf-btn-cancel">
+                    <i class="bi bi-x-lg"></i> Cancel
+                </a>
+                <button type="submit" class="gf-btn-submit">
+                    <i class="bi bi-floppy-fill"></i> Register Document
                 </button>
             </div>
+
         </form>
     </div>
+
 </div>
+
+
+<script>
+/* Priority pill selection */
+function selectPriority(level) {
+    ['high', 'medium', 'low'].forEach(function(l) {
+        document.getElementById('pill-' + l).classList.remove('selected');
+    });
+    document.getElementById('pill-' + level).classList.add('selected');
+}
+
+/* Char counter */
+function updateCharCount(el) {
+    const count = el.value.length;
+    const el2 = document.getElementById('charCount');
+    el2.textContent = count + ' char' + (count !== 1 ? 's' : '');
+    el2.style.color = count > 1000 ? '#d97706' : '#b0bec5';
+}
+</script>
+
 {% endblock %}

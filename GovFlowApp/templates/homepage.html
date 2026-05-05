@@ -2,810 +2,1535 @@
 
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}GovFlowApp{% endblock %}</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}GovFlowApp{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-        <link rel="stylesheet" href="{% static 'css/homepage.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="icon" href="{% static 'img/mharsmc.png' %}" type="image/png">
 
-        <!-- Favicon / Logo -->
-        <link rel="icon" href="{% static 'img/mharsmc.png' %}" type="image/png">
-    </head>
+    <style>
+        /* ════════════════════════════════════════
+           DESIGN TOKENS
+        ════════════════════════════════════════ */
+        :root {
+            --sidebar-width:           260px;
+            --sidebar-collapsed-width: 68px;
+            --header-height:           68px;
+            --sidebar-transition:      0.28s cubic-bezier(0.4, 0, 0.2, 1);
 
-    <body>
+            --color-primary:        #1a7a4a;
+            --color-primary-dark:   #145c38;
+            --color-primary-light:  #e8f5ee;
+            --color-primary-mid:    #2d9e63;
 
-        <div class="sidebar" id="sidebar">
-            <a href="{% url 'homepage' %}" class="logo-link">
-                <div class="logo">
-                    <img src="{% static 'img/mharsmc.png' %}" alt="icon">
-                    <span>GovFlowApp</span>
-                </div>
+            --color-bg:             #f0f4f8;
+            --color-surface:        #ffffff;
+            --color-border:         #e2e8f0;
+            --color-text:           #1e293b;
+            --color-text-muted:     #64748b;
+            --color-text-light:     #94a3b8;
+
+            --sidebar-bg:           #0f2d1e;
+            --sidebar-text:         #c8ddd4;
+            --sidebar-active-bg:    rgba(26,122,74,0.85);
+            --sidebar-hover-bg:     rgba(255,255,255,0.07);
+            --sidebar-section:      #4d7a5e;
+
+            --radius-sm:  6px;
+            --radius-md:  10px;
+            --radius-lg:  16px;
+            --shadow-sm:  0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md:  0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+            --shadow-lg:  0 10px 40px rgba(0,0,0,0.12);
+
+            --font: 'Poppins', sans-serif;
+            --transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+        }
+
+        /* ════════════════════════════════════════
+           GLOBAL HELPERS
+        ════════════════════════════════════════ */
+        .text-wrap-break {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font);
+            background: var(--color-bg);
+            color: var(--color-text);
+            font-size: 14px;
+            line-height: 1.5;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ════════════════════════════════════════
+           SIDEBAR — COLLAPSED BY DEFAULT, EXPANDS ON HOVER
+        ════════════════════════════════════════ */
+        .sidebar {
+            width: var(--sidebar-collapsed-width);
+            min-width: var(--sidebar-collapsed-width);
+            height: 100vh;
+            background: var(--sidebar-bg);
+            background-image: radial-gradient(ellipse at 80% 0%, rgba(26,122,74,0.18) 0%, transparent 60%);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0; left: 0;
+            z-index: 1000;
+            overflow: hidden;
+            transition: width var(--sidebar-transition), min-width var(--sidebar-transition), box-shadow var(--sidebar-transition);
+        }
+
+        /* Expand on hover (desktop) */
+        .sidebar:hover {
+            width: var(--sidebar-width);
+            min-width: var(--sidebar-width);
+            box-shadow: 4px 0 24px rgba(0,0,0,0.18);
+        }
+
+        /* Also expand when pinned (toggle class) */
+        .sidebar.pinned {
+            width: var(--sidebar-width);
+            min-width: var(--sidebar-width);
+        }
+
+        /* ── Brand ── */
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 20px 16px 16px;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            flex-shrink: 0;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .sidebar-brand img {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            box-shadow: 0 0 12px rgba(26,122,74,0.6);
+            transition: box-shadow 0.3s ease;
+        }
+        .sidebar-brand:hover img {
+            box-shadow: 0 0 20px rgba(26,122,74,0.8);
+        }
+        .sidebar-brand-text {
+            overflow: hidden;
+            white-space: nowrap;
+            flex: 1;
+            transition: all var(--sidebar-transition);
+        }
+        .sidebar:hover .sidebar-brand-text,
+        .sidebar.pinned .sidebar-brand-text {
+            /* Keep the same for expanded state */
+        }
+        .brand-title {
+            display: block;
+            font-size: 10px; font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: font-size var(--sidebar-transition);
+        }
+        .brand-subtitle {
+            display: block;
+            font-size: 6px; font-weight: 400;
+            color: var(--sidebar-section);
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 1px;
+            transition: font-size var(--sidebar-transition);
+        }
+        .sidebar:hover .brand-title,
+        .sidebar.pinned .brand-title {
+            font-size: 14.5px;
+        }
+        .sidebar:hover .brand-subtitle,
+        .sidebar.pinned .brand-subtitle {
+            font-size: 9.5px;
+        }
+
+        /* ── Nav ── */
+        .sidebar-nav {
+            flex: 1;
+            padding: 12px 10px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.1) transparent;
+        }
+        .sidebar-nav::-webkit-scrollbar { width: 4px; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+        .nav-section-label {
+            display: block;
+            font-size: 7px;
+            font-weight: 600;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--sidebar-section);
+            padding: 8px 10px 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: font-size var(--sidebar-transition), padding var(--sidebar-transition);
+        }
+        .sidebar:hover .nav-section-label,
+        .sidebar.pinned .nav-section-label {
+            font-size: 9px;
+            padding: 12px 10px 5px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            height: 40px;
+            padding: 0 10px;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            color: var(--sidebar-text);
+            font-size: 13px;
+            font-weight: 450;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 2px;
+            overflow: hidden;
+            position: relative;
+        }
+        .nav-item i {
+            font-size: 16px;
+            flex-shrink: 0;
+            width: 36px;
+            text-align: center;
+        }
+        .nav-label {
+            flex: 1;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            font-size: 10px;
+            font-weight: 400;
+            transition: font-size var(--sidebar-transition), font-weight var(--sidebar-transition);
+        }
+        .sidebar:hover .nav-label,
+        .sidebar.pinned .nav-label {
+            font-size: 13px;
+            font-weight: 450;
+        }
+
+        .nav-item:hover { background: var(--sidebar-hover-bg); color: #ffffff; }
+        .nav-item.active {
+            background: var(--sidebar-active-bg);
+            color: #ffffff;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(26,122,74,0.4);
+        }
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 20%; bottom: 20%;
+            width: 3px;
+            background: #4ade80;
+            border-radius: 0 3px 3px 0;
+        }
+
+        /* Tooltip when collapsed (not hovered) */
+        .sidebar:not(:hover):not(.pinned) .nav-item::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: calc(var(--sidebar-collapsed-width) + 6px);
+            top: 50%;
+            transform: translateY(-50%);
+            background: #1e293b;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: var(--radius-sm);
+            white-space: nowrap;
+            font-size: 12px; font-weight: 500;
+            pointer-events: none;
+            z-index: 9999;
+            box-shadow: var(--shadow-md);
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+        .sidebar:not(:hover):not(.pinned) .nav-item:hover::after {
+            opacity: 1;
+        }
+
+        /* ── Submenu Toggle ── */
+        .nav-submenu-toggle {
+            display: flex;
+            align-items: center;
+            height: 40px;
+            padding: 0 10px;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            color: var(--sidebar-text);
+            font-size: 13px;
+            font-weight: 450;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 2px;
+            overflow: hidden;
+        }
+        .nav-submenu-toggle i.main-icon {
+            font-size: 15px;
+            flex-shrink: 0;
+            width: 36px;
+            text-align: center;
+        }
+        .nav-submenu-toggle:hover { background: var(--sidebar-hover-bg); color: #fff; }
+        .nav-submenu-toggle .chevron {
+            margin-left: auto;
+            font-size: 8px;
+            transition: transform 0.25s ease, font-size var(--sidebar-transition);
+            flex-shrink: 0;
+        }
+        .sidebar:hover .nav-submenu-toggle .chevron,
+        .sidebar.pinned .nav-submenu-toggle .chevron {
+            font-size: 10px;
+        }
+        .nav-submenu-toggle[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+        .nav-submenu-toggle .nav-label { flex: 1; }
+
+        /* Hide submenu labels when sidebar is collapsed (not hovered) */
+        .sidebar:not(:hover):not(.pinned) .nav-submenu { display: none !important; }
+
+        .nav-submenu { padding-left: 16px; overflow: hidden; }
+        .nav-submenu .nav-item { font-size: 12.5px; padding: 8px 10px; }
+        .nav-submenu .nav-item i { font-size: 13px; }
+
+        /* ── Sidebar Footer ── */
+        .sidebar-footer {
+            padding: 10px;
+            border-top: 1px solid rgba(255,255,255,0.07);
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .user-profile-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition);
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .user-profile-row:hover { background: var(--sidebar-hover-bg); }
+        .user-avatar-sm {
+            width: 34px; height: 34px;
+            border-radius: 50%;
+            background: var(--color-primary);
+            color: #fff;
+            font-size: 12px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .user-info-sm {
+            overflow: hidden;
+            white-space: nowrap;
+            flex: 1;
+            transition: all var(--sidebar-transition);
+        }
+        .sidebar:hover .user-info-sm,
+        .sidebar.pinned .user-info-sm {
+            /* Keep expanded state */
+        }
+        .user-name-sm {
+            display: block;
+            font-size: 10px; font-weight: 600;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 150px;
+            transition: font-size var(--sidebar-transition);
+        }
+        .user-role-sm {
+            display: block;
+            font-size: 8px;
+            color: var(--sidebar-section);
+            transition: font-size var(--sidebar-transition);
+        }
+        .sidebar:hover .user-name-sm,
+        .sidebar.pinned .user-name-sm {
+            font-size: 12px;
+        }
+        .sidebar:hover .user-role-sm,
+        .sidebar.pinned .user-role-sm {
+            font-size: 10px;
+        }
+
+        /* Pin button */
+        .sidebar-pin-btn {
+            width: 26px; height: 26px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+            border: none;
+            color: var(--sidebar-text);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 12px;
+            flex-shrink: 0;
+            opacity: 0;
+            pointer-events: none;
+        }
+        /* ════════════════════════════════════════
+           MAIN WRAPPER
+        ════════════════════════════════════════ */
+        .main-wrapper {
+            margin-left: var(--sidebar-collapsed-width);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            transition: margin-left var(--sidebar-transition);
+        }
+
+        /* ════════════════════════════════════════
+           HEADER
+        ════════════════════════════════════════ */
+        .main-header {
+            height: var(--header-height);
+            background: var(--color-surface);
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            padding: 0 28px;
+            gap: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 500;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-toggle-btn {
+            width: 36px; height: 36px;
+            border-radius: var(--radius-sm);
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            color: var(--color-text-muted);
+            display: none;
+            align-items: center; justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+        .header-toggle-btn:hover { background: var(--color-primary-light); color: var(--color-primary); }
+
+        /* Search */
+        .search-bar-container { flex: 1; max-width: 500px; }
+        .search-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 50px;
+            padding: 0 18px;
+            height: 40px;
+            transition: var(--transition);
+        }
+        .search-bar:focus-within {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(26,122,74,0.1);
+            background: #fff;
+        }
+        .search-bar i { color: var(--color-text-light); font-size: 13px; flex-shrink: 0; }
+        .search-bar input {
+            border: none; background: transparent;
+            font-family: var(--font); font-size: 13px;
+            color: var(--color-text); width: 100%; outline: none;
+        }
+        .search-bar input::placeholder { color: var(--color-text-light); }
+
+        /* Header right */
+        .header-actions {
+            display: flex; align-items: center; gap: 6px; margin-left: auto;
+        }
+        .header-icon-btn {
+            width: 38px; height: 38px;
+            border-radius: var(--radius-sm);
+            background: transparent; border: none;
+            color: var(--color-text-muted);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 16px;
+            transition: var(--transition); position: relative;
+        }
+        .header-icon-btn:hover { background: var(--color-bg); color: var(--color-text); }
+
+        .notification-badge {
+            position: absolute;
+            top: 4px; right: 4px;
+            min-width: 17px; height: 17px;
+            background: #ef4444; color: #fff;
+            border-radius: 50px;
+            font-size: 9px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 4px;
+            border: 2px solid var(--color-surface);
+        }
+
+        .header-divider { width: 1px; height: 28px; background: var(--color-border); margin: 0 2px; }
+
+        /* ── USER DROPDOWN ── */
+        .header-user-dropdown { position: relative; }
+
+        .header-user {
+            display: flex; align-items: center; gap: 10px;
+            padding: 6px 10px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid transparent;
+            user-select: none;
+        }
+        .header-user:hover { background: var(--color-bg); border-color: var(--color-border); }
+        .header-user.active { background: var(--color-bg); border-color: var(--color-border); }
+
+        .header-avatar {
+            width: 34px; height: 34px; border-radius: 50%;
+            background: var(--color-primary); color: #fff;
+            font-size: 11px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .header-user-name { font-size: 13px; font-weight: 600; color: var(--color-text); white-space: nowrap; }
+        .header-chevron {
+            font-size: 10px; color: var(--color-text-muted);
+            transition: transform 0.2s;
+            flex-shrink: 0;
+        }
+        .header-user.active .header-chevron { transform: rotate(180deg); }
+
+        /* Dropdown menu */
+        .header-dropdown-menu {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            min-width: 200px;
+            box-shadow: var(--shadow-lg);
+            z-index: 9999;
+            overflow: hidden;
+
+            /* Hidden by default */
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+        }
+        .header-dropdown-menu.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-user-info {
+            padding: 14px 16px 10px;
+            border-bottom: 1px solid var(--color-border);
+        }
+        .dropdown-user-info .dui-name {
+            font-size: 13px; font-weight: 700; color: var(--color-text);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .dropdown-user-info .dui-role {
+            font-size: 11px; color: var(--color-text-muted); margin-top: 2px;
+        }
+
+        .header-dropdown-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 16px;
+            font-size: 13px; color: var(--color-text);
+            text-decoration: none;
+            transition: var(--transition);
+            cursor: pointer;
+            border: none; background: none;
+            font-family: var(--font);
+            width: 100%;
+        }
+        .header-dropdown-item:hover { background: var(--color-bg); color: var(--color-text); }
+        .header-dropdown-item.danger { color: #ef4444; }
+        .header-dropdown-item.danger:hover { background: #fef2f2; color: #dc2626; }
+        .header-dropdown-divider { border-top: 1px solid var(--color-border); margin: 4px 0; }
+
+        /* ── Notification dropdown ── */
+        .notification-wrapper { position: relative; }
+        .notification-dropdown {
+            position: absolute;
+            top: calc(100% + 8px); right: 0;
+            width: 340px; max-height: 380px; overflow-y: auto;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            z-index: 9999;
+
+            opacity: 0; visibility: hidden;
+            transform: translateY(-8px);
+            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+        }
+        .notification-dropdown.open {
+            opacity: 1; visibility: visible; transform: translateY(0);
+        }
+        .notification-header {
+            padding: 12px 16px 8px;
+            font-size: 12px; font-weight: 700;
+            color: var(--color-text); letter-spacing: 0.5px;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--color-border);
+        }
+        .notification-item {
+            display: block; padding: 11px 16px;
+            font-size: 12.5px; color: var(--color-text);
+            text-decoration: none;
+            border-bottom: 1px solid var(--color-border);
+            transition: var(--transition);
+        }
+        .notification-item:hover { background: var(--color-primary-light); }
+        .notification-item:last-child { border-bottom: none; }
+        .notification-time { font-size: 11px; color: var(--color-text-muted); margin-top: 3px; display: block; }
+
+        /* ════════════════════════════════════════
+           MAIN CONTENT
+        ════════════════════════════════════════ */
+        .main-content { flex: 1; padding: 28px; }
+
+        .main-footer {
+            padding: 14px 28px;
+            border-top: 1px solid var(--color-border);
+            background: var(--color-surface);
+            display: flex; align-items: center; justify-content: space-between;
+            font-size: 11.5px; color: var(--color-text-muted); gap: 12px;
+        }
+        .main-footer i { color: var(--color-primary); }
+
+        /* ════════════════════════════════════════
+           TOAST
+        ════════════════════════════════════════ */
+        .toast-container-custom {
+            position: fixed; top: 80px; right: 20px;
+            z-index: 9999; display: flex; flex-direction: column; gap: 8px;
+        }
+        .toast {
+            background: var(--color-surface); border: 1px solid var(--color-border);
+            border-radius: var(--radius-md); padding: 12px 16px;
+            box-shadow: var(--shadow-lg);
+            display: flex; align-items: center; gap: 10px;
+            font-size: 13px; min-width: 260px;
+        }
+        .toast.text-bg-success { background: #d1fae5; border-color: #a7f3d0; color: #065f46; }
+        .toast.text-bg-danger  { background: #fee2e2; border-color: #fca5a5; color: #7f1d1d; }
+        .toast.text-bg-warning { background: #fffbeb; border-color: #fde68a; color: #78350f; }
+
+        /* ════════════════════════════════════════
+           MODALS
+        ════════════════════════════════════════ */
+        .modal-content {
+            border: none; border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg); overflow: hidden;
+        }
+        .modal-header { border-bottom: 1px solid var(--color-border); padding: 18px 24px; }
+        .modal-header.bg-success { background: var(--color-primary) !important; }
+        .modal-header.bg-danger  { background: #ef4444 !important; }
+        .modal-title { font-size: 15px; font-weight: 600; }
+        .modal-body { padding: 24px; }
+        .modal-footer { padding: 16px 24px; border-top: 1px solid var(--color-border); background: var(--color-bg); }
+
+        .modal-body .form-label { font-size: 12.5px; font-weight: 600; color: var(--color-text); margin-bottom: 6px; }
+        .modal-body .form-control,
+        .modal-body .form-select {
+            border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+            font-family: var(--font); font-size: 13px; padding: 9px 13px; transition: var(--transition);
+        }
+        .modal-body .form-control:focus,
+        .modal-body .form-select:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(26,122,74,0.12);
+        }
+
+        .btn { font-family: var(--font); font-size: 13px; font-weight: 500; border-radius: var(--radius-sm); padding: 8px 18px; transition: var(--transition); }
+        .btn-success, .btn-outline-success:hover { background: var(--color-primary) !important; border-color: var(--color-primary) !important; }
+        .btn-outline-success { color: var(--color-primary); border-color: var(--color-primary); }
+        .btn-outline-success:hover { color: #fff !important; }
+
+        /* QR Scanner */
+        .qr-scanner { width: 100%; height: 260px; border: 2px dashed var(--color-border); border-radius: var(--radius-md); overflow: hidden; background: var(--color-bg); }
+        .qr-scanner video { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Select2 */
+        .select2-container--default .select2-selection--single { height: 40px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); display: flex; align-items: center; }
+        .select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 40px; font-size: 13px; font-family: var(--font); }
+        .select2-container--default .select2-dropdown { border: 1px solid var(--color-primary); border-radius: var(--radius-md); box-shadow: var(--shadow-md); }
+        .select2-container--default .select2-results__option--highlighted { background: var(--color-primary) !important; }
+        .select2-container--default .select2-results__option { font-size: 13px; font-family: var(--font); }
+
+        /* ════════════════════════════════════════
+           RESPONSIVE
+        ════════════════════════════════════════ */
+        @media (max-width: 992px) {
+            .sidebar {
+                left: calc(-1 * var(--sidebar-width));
+                width: var(--sidebar-width);
+                min-width: var(--sidebar-width);
+            }
+            .sidebar:hover { left: calc(-1 * var(--sidebar-width)); box-shadow: none; }
+            .sidebar.mobile-open {
+                left: 0 !important;
+                width: var(--sidebar-width) !important;
+                min-width: var(--sidebar-width) !important;
+                box-shadow: 4px 0 24px rgba(0,0,0,0.25) !important;
+            }
+            /* Always show labels on mobile when open */
+            .sidebar.mobile-open .sidebar-brand-text,
+            .sidebar.mobile-open .nav-label,
+            .sidebar.mobile-open .nav-section-label,
+            .sidebar.mobile-open .user-info-sm,
+            .sidebar.mobile-open .chevron { opacity: 1 !important; width: auto !important; height: auto !important; padding-inline: inherit; }
+            .sidebar.mobile-open .nav-label { max-width: 180px !important; }
+            .sidebar.mobile-open .nav-submenu { display: block !important; }
+
+            .main-wrapper { margin-left: 0 !important; }
+            .header-toggle-btn { display: flex !important; }
+            .sidebar-pin-btn { display: none; }
+            .header-user-name { display: none; }
+        }
+        @media (max-width: 576px) {
+            .main-content { padding: 16px; }
+            .main-header { padding: 0 16px; }
+        }
+
+        .sidebar-backdrop {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.4); z-index: 999;
+            backdrop-filter: blur(2px);
+        }
+        .sidebar-backdrop.show { display: block; }
+
+
+        /* Allow Select2 dropdown to overflow the modal boundary */
+        #perDocumentReportModal .modal-content {
+            overflow: visible;
+        }
+        #perDocumentReportModal .modal-body {
+            overflow: visible;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar" id="sidebar">
+
+    <a class="sidebar-brand" href="{% url 'dashboard' %}">
+        <img src="{% static 'img/mharsmc.png' %}" alt="GovFlow">
+        <div class="sidebar-brand-text">
+            <span class="brand-title">GovFlowApp</span>
+            <span class="brand-subtitle">Document Routing System</span>
+        </div>
+    </a>
+
+    <nav class="sidebar-nav" id="sidebarNav">
+
+        <span class="nav-section-label">Main</span>
+
+        <a href="{% url 'dashboard' %}"
+           class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+           data-tooltip="Dashboard">
+            <i class="fa-solid fa-house"></i>
+            <span class="nav-label">Dashboard</span>
+        </a>
+
+        <span class="nav-section-label">Documents</span>
+
+        <a href="{% url 'all_documents' %}"
+           class="nav-item {% if request.resolver_match.url_name == 'all_documents' %}active{% endif %}"
+           data-tooltip="All Documents">
+            <i class="fa-solid fa-folder-open"></i>
+            <span class="nav-label">All Documents</span>
+        </a>
+
+        <a href="{% url 'completed_documents' %}"
+           class="nav-item {% if request.resolver_match.url_name == 'completed_documents' %}active{% endif %}"
+           data-tooltip="Completed">
+            <i class="fa-solid fa-circle-check"></i>
+            <span class="nav-label">Completed</span>
+        </a>
+
+        <a href="{% url 'new_document' %}"
+           class="nav-item {% if request.resolver_match.url_name == 'new_document' %}active{% endif %}"
+           data-tooltip="New Document">
+            <i class="fa-solid fa-file-circle-plus"></i>
+            <span class="nav-label">New Document</span>
+        </a>
+
+        <a href="{% url 'receive_page' %}" class="nav-item" data-tooltip="Receive Document">
+            <i class="fa-solid fa-inbox"></i>
+            <span class="nav-label">Receive Document</span>
+        </a>
+
+        <span class="nav-section-label">Reports</span>
+
+        <a class="nav-submenu-toggle" data-bs-toggle="collapse" href="#reportMenu"
+           role="button" aria-expanded="false" data-tooltip="Reports">
+            <i class="fa-solid fa-chart-bar main-icon"></i>
+            <span class="nav-label">Report Generation</span>
+            <i class="fa-solid fa-chevron-down chevron"></i>
+        </a>
+        <div class="collapse nav-submenu" id="reportMenu">
+            <a href="" class="nav-item" data-bs-toggle="modal" data-bs-target="#perDocumentReportModal">
+                <i class="fa-solid fa-file-lines"></i>
+                <span class="nav-label">Per Document</span>
             </a>
-
-            <hr class="separator">
-
-            <ul class="menu">
-                <li class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" data-tooltip="Dashboard">
-                    <a href="{% url 'dashboard' %}">
-                        <i class="bi bi-house icon"></i><span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="{% if request.resolver_match.url_name == 'all_documents' %}active{% endif %}" data-tooltip="All Documents">
-                    <a href="{% url 'all_documents' %}">
-                        <i class="bi bi-folder2-open icon"></i><span>All Documents</span>
-                    </a>
-                </li>
-                <li class="{% if request.resolver_match.url_name == 'completed_documents' %}active{% endif %}" data-tooltip="Completed">
-                    <a href="{% url 'completed_documents' %}">
-                        <i class="bi bi-check-circle icon"></i><span>Completed</span>
-                    </a>
-                </li>
-                <li class="{% if request.resolver_match.url_name == 'new_document' %}active{% endif %}" data-tooltip="New Document">
-                    <a href="{% url 'new_document' %}">
-                        <i class="bi bi-file-earmark-plus icon"></i><span>New Document</span>
-                    </a>
-                </li>
-                <li data-tooltip="Receive Document">
-                    <a href="{% url 'receive_page' %}">
-                        <i class="bi bi-qr-code-scan icon"></i><span>Receive Document</span>
-                    </a>
-                </li>
-                <li data-tooltip="Report Generation" data-menu="report">
-
-                    <a data-bs-toggle="collapse" href="#reportMenu" role="button" aria-expanded="false">
-                        <i class="bi bi-file-earmark-bar-graph icon"></i>
-                        <span>Report Generation</span>
-                        <i class="bi bi-chevron-down ms-auto"></i>
-                    </a>
-
-                    <div class="collapse" id="reportMenu">
-                        <ul class="list-unstyled ps-4 mt-2">
-
-                            <li>
-                                <a href="" data-bs-toggle="modal" data-bs-target="#perDocumentReportModal">
-                                    <i class="bi bi-file-earmark-text"></i>
-                                    Per Document Report
-                                </a>
-                            </li>
-
-                            <li>
-                                <a href=""  data-bs-toggle="modal" data-bs-target="#weeklyReportSelectModal">
-                                    <i class="bi bi-calendar-week"></i>
-                                    Per Weekly Report
-                                </a>
-                            </li>
-
-                            <li>
-                                <a href="" data-bs-toggle="modal" data-bs-target="#monthlyReportSelectModal">
-                                    <i class="bi bi-calendar-month"></i>
-                                    Per Monthly Report
-                                </a>
-                            </li>
-
-                        </ul>
-                    </div>
-
-                </li>
-
-            </ul>
-
-            <div class="sidebar-footer">
-                <button class="sidebar-arrow" id="desktopToggle">
-                    <i class="bi bi-chevron-left"></i>
-                </button>
-            </div>
+            <a href="" class="nav-item" data-bs-toggle="modal" data-bs-target="#weeklyReportSelectModal">
+                <i class="fa-solid fa-calendar-week"></i>
+                <span class="nav-label">Weekly Report</span>
+            </a>
+            <a href="" class="nav-item" data-bs-toggle="modal" data-bs-target="#monthlyReportSelectModal">
+                <i class="fa-solid fa-calendar-days"></i>
+                <span class="nav-label">Monthly Report</span>
+            </a>
         </div>
 
-        <div class="main-content" id="mainContent">
-            
-            <header class="main-header">
-                
-                <button class="header-toggle-btn" id="headerToggle">
-                    <i class="bi bi-list"></i>
-                </button>
 
-                <div class="search-bar-container">
-                    <form method="GET" action="{{ request.path }}" class="search-bar">
-                        <i class="bi bi-search"></i>
-                        <input
-                            type="text"
-                            name="q"
-                            value="{{ search_query }}"
-                            placeholder="Search by tracking number, title, or sender..."
-                        >
-                    </form>
+        <!-- In your sidebar, replace the Admin section with: -->
+        {% if request.user.is_authenticated %}
+            {% if request.user.is_superuser or request.user.is_staff %}
+                <span class="nav-section-label">Admin</span>
+                <a href="{% url 'user_management' %}"
+                class="nav-item {% if request.resolver_match.url_name == 'user_management' %}active{% endif %}"
+                data-tooltip="User Management">
+                    <i class="fa-solid fa-users-gear"></i>
+                    <span class="nav-label">User Management</span>
+                </a>
+            {% endif %}
+        {% endif %}
+
+        <!-- <span class="nav-section-label">Admin</span>
+        <a href="{% url 'user_management' %}"
+           class="nav-item {% if request.resolver_match.url_name == 'user_management' %}active{% endif %}"
+           data-tooltip="User Management">
+            <i class="fa-solid fa-users-gear"></i>
+            <span class="nav-label">User Management</span>
+        </a> -->
+
+        <span class="nav-section-label">Account</span>
+        <a href="{% url 'settings' %}"
+            class="nav-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}"
+            data-tooltip="Settings">
+            <i class="fa-solid fa-gear"></i>
+            <span class="nav-label">Settings</span>
+        </a>
+
+    </nav>
+
+    <!-- Footer: user + pin button -->
+    <div class="sidebar-footer">
+        <div class="user-profile-row">
+            <div class="user-avatar-sm">
+                {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+            </div>
+            <div class="user-info-sm">
+                <span class="user-name-sm">{{ request.user.get_full_name }}</span>
+                <span class="user-role-sm">Staff</span>
+            </div>
+        </div>
+    </div>
+
+</aside>
+
+<!-- Mobile backdrop -->
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<!-- ═══ MAIN WRAPPER ═══ -->
+<div class="main-wrapper" id="mainWrapper">
+
+    <!-- Header -->
+    <header class="main-header">
+
+        <button class="header-toggle-btn" id="headerToggle">
+            <i class="bi bi-list"></i>
+        </button>
+
+        <!-- Search -->
+        <div class="search-bar-container">
+            <form method="GET" action="{{ request.path }}" class="search-bar">
+                <i class="bi bi-search"></i>
+                <input type="text" name="q" value="{{ search_query }}"
+                       placeholder="Search tracking number, title, or sender…">
+            </form>
+        </div>
+
+        <!-- Header Actions -->
+        <div class="header-actions">
+
+            <!-- Notifications -->
+            <div class="notification-wrapper">
+                <button class="header-icon-btn" id="notifToggle" title="Notifications" type="button">
+                    <i class="bi bi-bell"></i>
+                    <span class="notification-badge" id="notifBadge" style="display:none;">0</span>
+                </button>
+                <div class="notification-dropdown" id="notifDropdown">
+                    <div class="notification-header">Notifications</div>
+                    <div id="notifList">
+                        {% if notifications %}
+                            {% for n in notifications %}
+                            <a class="notification-item" href="{% url 'mark_notification_read' n.id %}">
+                                {{ n.message }}
+                                <span class="notification-time">{{ n.created_at|timesince }} ago</span>
+                            </a>
+                            {% endfor %}
+                        {% else %}
+                            <div style="padding:20px 16px; text-align:center; color:var(--color-text-muted); font-size:13px;">
+                                No new notifications
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="header-divider"></div>
+
+            <!-- ── User Dropdown ── -->
+            <div class="header-user-dropdown" id="headerUserDropdown">
+                <div class="header-user" id="headerUserToggle" role="button" tabindex="0">
+                    <div class="header-avatar">
+                        {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+                    </div>
+                    <span class="header-user-name">{{ request.user.get_full_name }}</span>
+                    <i class="bi bi-chevron-down header-chevron"></i>
                 </div>
 
-                <div class="user-actions">
+                <div class="header-dropdown-menu" id="headerDropdownMenu">
+                    <!-- User info header -->
+                    <div class="dropdown-user-info">
+                        <div class="dui-name">{{ request.user.get_full_name }}</div>
+                        <div class="dui-role">{{ request.user.email }}</div>
+                    </div>
 
-                    <!-- notification here -->
-                    <div class="dropdown">
-                        <button class="icon-btn position-relative" data-bs-toggle="dropdown">
-                            <i class="bi bi-bell-fill"></i>
-                            <span class="badge bg-danger rounded-pill notification-badge position-absolute" style="display:none;">
-                                {% if notification_count %}{{ notification_count }}{% else %}0{% endif %}
+                    <div class="header-dropdown-divider"></div>
+
+                    <a href="{% url 'settings' %}" class="header-dropdown-item">
+                        <i class="bi bi-person"></i> Profile
+                    </a>
+                    <a href="{% url 'settings' %}" class="header-dropdown-item">
+                        <i class="bi bi-gear"></i> Settings
+                    </a>
+
+                    <div class="header-dropdown-divider"></div>
+
+                    <a href="{% url 'logout' %}" class="header-dropdown-item danger">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </header>
+
+    <!-- Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div>&copy; {% now "Y" %} GovFlowApp — Document Routing System</div>
+        <div>Made with <i class="fa-solid fa-heart"></i> by MHARSMC IT Team.</div>
+    </footer>
+
+</div>
+
+<!-- ═══ MODALS ═══ -->
+
+<!-- QR Scanner Modal -->
+<div class="modal fade" id="receiveModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-camera me-2"></i>Scan Document QR</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center d-flex flex-column gap-3">
+                <div id="qr-scanner" class="qr-scanner mx-auto"></div>
+                <p style="font-size:12.5px; color:var(--color-text-muted);">Align the QR code within the frame</p>
+                <div class="d-flex align-items-center gap-2">
+                    <hr style="flex:1;margin:0;"><span style="font-size:12px;color:var(--color-text-muted);">OR</span><hr style="flex:1;margin:0;">
+                </div>
+                <button type="button" class="btn btn-outline-success w-100"
+                    data-bs-toggle="modal" data-bs-target="#manualEntryModal" data-bs-dismiss="modal">
+                    <i class="bi bi-keyboard me-2"></i>Enter Tracking Number Manually
+                </button>
+            </div>
+            <div class="modal-footer"><small style="color:var(--color-text-muted);">Make sure the QR code fits inside the frame.</small></div>
+        </div>
+    </div>
+</div>
+
+<!-- Manual Entry Modal -->
+<div class="modal fade" id="manualEntryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:440px;">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-keyboard me-2"></i>Manual Entry</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{% url 'receive_document' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Enter Document Tracking Number</label>
+                        <div class="input-group">
+                            <span class="input-group-text" style="background:var(--color-bg);border-color:var(--color-border);">
+                                <i class="bi bi-search text-muted"></i>
                             </span>
-                        </button>
-
-
-                        <ul id="notification-list" class="dropdown-menu dropdown-menu-end shadow notification-dropdown" style="width:320px; padding:0;">
-                            {% if notifications %}
-                                {% for n in notifications %}
-                                <li>
-                                    <a class="dropdown-item small" href="{% url 'mark_notification_read' n.id %}">
-                                        {{ n.message }}<br>
-                                        <span class="text-muted small">{{ n.created_at|timesince }} ago</span>
-                                    </a>
-                                </li>
-                                {% endfor %}
-                            {% else %}
-                                <li class="dropdown-item text-muted text-center">
-                                    No new notifications
-                                </li>
-                            {% endif %}
-                        </ul>
-                    </div>
-
-
-
-
-                    <div class="profile-section d-flex align-items-center gap-2" id="'profileToggle">
-                        <div class="profile-avatar">
-                            <i class="bi bi-person-fill"></i>
+                            <input type="text" class="form-control" id="manualTracking"
+                                   placeholder="e.g. TRK-2025-00001" name="tracking_id"
+                                   style="text-transform:uppercase;">
                         </div>
-                        <span class="welcome-name">Welcome, {{ request.user.get_full_name }}</span>
+                        <small class="text-muted" style="font-size:11.5px;">Enter the tracking number exactly as it appears on the routing slip.</small>
                     </div>
-
-                    <div class="profile-dropdown" id="profileDropdown">
-                        <a href="{% url 'logout' %}" class="btn btn-outline-danger logout-btn">Logout</a>
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success text-white">Find &amp; Receive</button>
                     </div>
-                </div>
-
-
-            </header>
-
-            <div class="content-body">
-                {% block content %}
-                    
-                {% endblock %}
+                </form>
             </div>
         </div>
+    </div>
+</div>
 
-        <!-- QR Scanner Modal -->
-        <div class="modal fade" id="receiveModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content receive-modal shadow-lg rounded-2xl overflow-hidden border">
-
-                    <!-- Header -->
-                    <div class="modal-header d-flex justify-content-between align-items-center bg-success text-white border-0">
-                        <h5 class="modal-title d-flex align-items-center gap-2">
-                            <i class="bi bi-camera text-white"></i>
-                            Scan Document QR
-                        </h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                    </div>
-
-
-                    <!-- Body -->
-                   <div class="modal-body text-center d-flex flex-column justify-content-center align-items-center gap-2">
-
-                        <!-- QR Scanner -->
-                        <div id="qr-scanner" class="qr-scanner mx-auto"></div>
-
-                        <p class="text-muted">Align the QR code within the frame</p>
-
-
-                        <!-- OR Separator -->
-                        <div class="d-flex align-items-center w-100">
-                            <hr class="flex-grow-1 m-0">
-                            <span class="mx-2 text-muted" style="line-height: 1;">OR</span>
-                            <hr class="flex-grow-1 m-0">
-                        </div>
-
-                        <!-- manual button -->
-                       <button type="button" class="btn btn-outline-success w-100 d-flex align-items-center justify-content-center gap-2" data-bs-toggle="modal" data-bs-target="#manualEntryModal" data-bs-dismiss="modal">
-                            <i class="bi bi-keyboard"></i> Enter Tracking Number Manually
-                        </button>
-                    </div>
-
-                    <!-- Footer -->
-                    <div class="modal-footer d-flex flex-column gap-2">
-                        <p class="text-secondary text-center small mb-0">Make sure the QR code fits inside the frame.</p>
-                    </div>
-
-                </div>
+<!-- Routing Slip Modal -->
+<div class="modal fade" id="routingSlipModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">Document Routing Slip</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">{% include "documents/partials/routing_slip.html" %}</div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                <button onclick="printRoutingSlip()" class="btn btn-success text-white">
+                    <i class="bi bi-printer me-1"></i>Print
+                </button>
             </div>
         </div>
+    </div>
+</div>
 
-        <!-- Manual Tracking Entry Modal -->
-        <div class="modal fade" id="manualEntryModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content receive-modal shadow-lg rounded-2xl overflow-hidden border">
-
-                    <!-- Header -->
-                    <div class="modal-header d-flex justify-content-between align-items-center bg-success text-white border-0">
-                        <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
-                            <i class="bi bi-keyboard"></i>
-                            Manual Entry
-                        </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-
-                    <!-- Body -->
-                    <div class="modal-body d-flex flex-column gap-3">
-                        <form method="POST" action="{% url 'receive_document' %}">
-                            {% csrf_token %}
-                            <div>
-                                <label for="manualTracking" class="form-label fw-bold">Enter Document Tracking Number</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white border-end-0">
-                                        <i class="bi bi-search text-secondary"></i>
-                                    </span>
-                                    <input type="text" class="form-control border-start-0" 
-                                        id="manualTracking" 
-                                        placeholder="e.g. TRK-2025-00001" 
-                                        name="tracking_id"
-                                        style="text-transform: uppercase;">
-                                </div>
-                                <small class="form-text text-muted">Enter the tracking number exactly as it appears on the routing slip.</small>
-                            </div>
-
-                            <div class="d-flex justify-content-end gap-2 mt-3">
-                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-outline-success">Find &amp; Receive</button>
-                            </div>
-                        </form>
-                    </div>
-
-                    <!-- Footer -->
-                    <div class="modal-footer d-flex flex-column gap-1">
-                        <p class="text-secondary text-center small mb-0">Ensure the tracking number is correct before submitting.</p>
-                    </div>
-
-                </div>
+<!-- Edit Document Modal -->
+<div class="modal fade" id="editDocumentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" id="editDocumentModalContent">
+            <div class="modal-body text-center p-5">
+                <div class="spinner-border text-success"></div>
+                <p class="mt-2" style="font-size:13px;color:var(--color-text-muted);">Loading document…</p>
             </div>
         </div>
+    </div>
+</div>
 
-        <!-- Toast container -->
-        <div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 1050;">
-            {% for message in messages %}
-            <div class="toast align-items-center text-bg-{{ message.tags|default:'primary' }} border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="d-flex">
-                    <div class="toast-body">
-                        {{ message }}
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
+<!-- Retract Modal -->
+<div class="modal fade" id="retractModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Retract Document</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            {% endfor %}
-        </div>
-
-        <!-- Routing Slip Modal -->
-        <div class="modal fade" id="routingSlipModal" tabindex="-1">
-            <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-                <div class="modal-content">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title">Document Routing Slip</h5>
-                    <button class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-
-                <div class="modal-body p-0">
-                    {% include "documents/partials/routing_slip.html" %}
-                </div>
-
-                <div class="modal-footer">
-                    <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                    <button onclick="printRoutingSlip()" class="btn btn-outline-success">
-                        <i class="bi bi-printer"></i> Print
-                    </button>
-                </div>
-                </div>
+            <div class="modal-body">Are you sure you want to retract this document?</div>
+            <div class="modal-footer">
+                <form id="retractForm" method="POST" action="">
+                    {% csrf_token %}
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger ms-2">Retract</button>
+                </form>
             </div>
         </div>
+    </div>
+</div>
 
-        <!-- Global Edit Document Modal -->
-        <div class="modal fade" id="editDocumentModal" tabindex="-1">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
-                <div class="modal-content" id="editDocumentModalContent">
-                    <!-- Loaded dynamically -->
-                    <div class="modal-body text-center p-5">
-                        <div class="spinner-border text-success"></div>
-                        <p class="mt-2">Loading document...</p>
+<!-- Add Status Modal -->
+<div class="modal fade" id="addStatusModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-clock-history me-2"></i>Add Status</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" id="addStatusForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Status Note</label>
+                        <textarea id="statusNote" name="note" class="form-control" rows="4" placeholder="Enter status update…" required></textarea>
                     </div>
-                </div>
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success text-white">Add Status</button>
+                    </div>
+                </form>
             </div>
         </div>
+    </div>
+</div>
 
-        <!-- Retract Document Modal -->
-        <div class="modal fade" id="retractModal" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header bg-danger text-white">
-                        <h5 class="modal-title">Retract Document</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<!-- Weekly Report Select Modal -->
+<div class="modal fade" id="weeklyReportSelectModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-calendar-week me-2"></i>Select Week</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="weeklyReportForm">
+                    <div class="mb-3">
+                        <label class="form-label">Week Start</label>
+                        <input type="date" class="form-control" id="weekStart" name="start" required>
                     </div>
-                    <div class="modal-body">
-                        Are you sure you want to retract this document?
+                    <div class="mb-3">
+                        <label class="form-label">Week End</label>
+                        <input type="date" class="form-control" id="weekEnd" name="end" required>
                     </div>
-                    <div class="modal-footer">
-                        <form id="retractForm" method="POST" action="">
-                        {% csrf_token %}
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-danger">Retract</button>
-                        </form>
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success text-white">Generate Report</button>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
+    </div>
+</div>
 
-        <!-- Global Add Status Modal -->
-        <!-- ADD STATUS MODAL -->
-
-        
-        <div class="modal fade" id="addStatusModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-
-                    <!-- Modal Header -->
-                    <div class="modal-header bg-success text-white">
-                        <h5 class="modal-title">
-                            <i class="bi bi-clock-history me-1"></i> Add Status
-                        </h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                    </div>
-
-                    <!-- Modal Body -->
-                    <div class="modal-body">
-                        <form method="POST" id="addStatusForm">
-                            {% csrf_token %}
-                            
-                            <div class="mb-3">
-                                <label for="statusNote" class="form-label">Status Note</label>
-                                <textarea id="statusNote" name="note" class="form-control" rows="4" placeholder="Enter status update..." required></textarea>
-                            </div>
-
-                            <!-- Modal Footer Buttons -->
-                            <div class="d-flex justify-content-end gap-2">
-                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-outline-success">Add Status</button>
-                            </div>
-                        </form>
-                    </div>
-
-                </div>
+<!-- Monthly Report Select Modal -->
+<div class="modal fade" id="monthlyReportSelectModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-calendar-month me-2"></i>Select Month</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-        </div> 
-
-        <!-- Weekly and Monthly Report Modals -->
-
-
-        <!-- Weekly Report Selection Modal -->
-        <div class="modal fade" id="weeklyReportSelectModal" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-
-                    <div class="modal-header bg-success text-white">
-                        <h5 class="modal-title"><i class="bi bi-calendar-week"></i> Select Week</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-body">
+                <form id="monthlyReportForm">
+                    <div class="mb-3">
+                        <label class="form-label">Month &amp; Year</label>
+                        <input type="month" class="form-control" id="monthYear" name="month_year" required>
                     </div>
-
-                    <div class="modal-body">
-                        <form id="weeklyReportForm">
-                            <div class="mb-3">
-                                <label for="weekStart" class="form-label">Week Start</label>
-                                <input type="date" class="form-control" id="weekStart" name="start" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="weekEnd" class="form-label">Week End</label>
-                                <input type="date" class="form-control" id="weekEnd" name="end" required>
-                            </div>
-                            <div class="d-flex justify-content-end gap-2">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-success">Generate Report</button>
-                            </div>
-                        </form>
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success text-white">Generate Report</button>
                     </div>
-
-                </div>
+                </form>
             </div>
         </div>
+    </div>
+</div>
 
-        <!-- Monthly Report Selection Modal -->
-        <div class="modal fade" id="monthlyReportSelectModal" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-
-                    <div class="modal-header bg-success text-white">
-                        <h5 class="modal-title"><i class="bi bi-calendar-month"></i> Select Month</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+<!-- Per Document Report Modal -->
+<div class="modal fade" id="perDocumentReportModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-file-earmark-text me-2"></i>Select Document</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="documentReportForm">
+                    <div class="mb-3">
+                        <label class="form-label">Document</label>
+                        <select class="form-select" id="documentSelect" name="document_id" required>
+                            <option value="">-- Select a Document --</option>
+                            {% for doc in user_documents %}
+                            <option value="{{ doc.id }}">{{ doc.tracking_id }} - {{ doc.title }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-
-                    <div class="modal-body">
-                        <form id="monthlyReportForm">
-                            <div class="mb-3">
-                                <label for="monthYear" class="form-label">Month & Year</label>
-                                <input type="month" class="form-control" id="monthYear" name="month_year" required>
-                            </div>
-                            <div class="d-flex justify-content-end gap-2">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-success">Generate Report</button>
-                            </div>
-                        </form>
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success text-white">Generate Report</button>
                     </div>
-
-                </div>
+                </form>
             </div>
         </div>
+    </div>
+</div>
 
-
-        <!-- Per Document Report Modal -->
-        <div class="modal fade" id="perDocumentReportModal" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-
-                    <div class="modal-header bg-success text-white">
-                        <h5 class="modal-title"><i class="bi bi-file-earmark-text"></i> Select Document</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                    </div>
-
-                    <div class="modal-body">
-                        <form id="documentReportForm">
-                            <div class="mb-3">
-                                <label for="documentSelect" class="form-label">Document</label>
-                                <!-- <select class="form-select" id="documentSelect" name="document_id" required>
-                                    <option value="">-- Select a Document --</option>
-                                    {% for doc in user_documents %}
-                                        <option value="{{ doc.id }}">
-                                            {{ doc.tracking_id }} - {{ doc.title }}
-                                        </option>
-                                    {% endfor %}
-                                </select> -->
-
-                                <select class="form-select" id="documentSelect" name="document_id" required>
-                                    <option value="">-- Select a Document --</option>
-                                    {% for doc in user_documents %}
-                                        <option value="{{ doc.id }}">
-                                            {{ doc.tracking_id }} - {{ doc.title }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-
-                            <div class="d-flex justify-content-end gap-2">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-success">Generate Report</button>
-                            </div>
-                        </form>
-                    </div>
-
-                </div>
+<!-- Weekly Report Display Modal -->
+<div class="modal fade" id="weeklyReportModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-calendar-week me-2"></i>Weekly Document Flow Report</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive" id="weeklyReportTableContainer"></div>
+            </div>
+            <div class="modal-footer">
+                <a id="weeklyExportExcel" class="btn btn-success text-white" target="_blank">
+                    <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+                </a>
+                <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
+    </div>
+</div>
 
-        <!-- Weekly Report Modal -->
-        <div class="modal fade" id="weeklyReportModal" tabindex="-1">
-            <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-                <div class="modal-content">
-
-                    <div class="modal-header bg-success text-white">
-                        <h5 class="modal-title"><i class="bi bi-calendar-week"></i> Weekly Document Flow Report</h5>
-                        <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                    </div>
-
-                    <div class="modal-body">
-                        <div class="table-responsive" id="weeklyReportTableContainer">
-                            <!-- Table will be injected here via AJAX -->
-                        </div>
-                    </div>
-
-                    <div class="modal-footer">
-                        <!-- <a id="weeklyExportPdf" class="btn btn-danger" target="_blank">
-                            <i class="bi bi-file-earmark-pdf"></i> Export PDF
-                        </a> -->
-                        <a id="weeklyExportExcel" class="btn btn-success" target="_blank">
-                            <i class="bi bi-file-earmark-excel"></i> Export Excel
-                        </a>
-                        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    </div>
-
-                </div>
+<!-- Monthly Report Display Modal -->
+<div class="modal fade" id="monthlyReportModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-calendar-month me-2"></i>Monthly Document Flow Report</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive" id="monthlyReportTableContainer"></div>
+            </div>
+            <div class="modal-footer">
+                <a id="monthlyExportExcel" class="btn btn-success text-white" target="_blank">
+                    <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+                </a>
+                <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
+    </div>
+</div>
 
-        <!-- Monthly Report Modal -->
-        <div class="modal fade" id="monthlyReportModal" tabindex="-1">
-            <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-                <div class="modal-content">
-
-                    <div class="modal-header bg-success text-white">
-                        <h5 class="modal-title"><i class="bi bi-calendar-month"></i> Monthly Document Flow Report</h5>
-                        <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                    </div>
-
-                    <div class="modal-body">
-                        <div class="table-responsive" id="monthlyReportTableContainer">
-                            <!-- Table will be injected here via AJAX -->
-                        </div>
-                    </div>
-
-                    <div class="modal-footer">
-                        <!-- <a id="monthlyExportPdf" class="btn btn-danger" target="_blank">
-                            <i class="bi bi-file-earmark-pdf"></i> Export PDF
-                        </a> -->
-                        <a id="monthlyExportExcel" class="btn btn-success" target="_blank">
-                            <i class="bi bi-file-earmark-excel"></i> Export Excel
-                        </a>
-                        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    </div>
-
-                </div>
-            </div>
+<!-- Toast container -->
+<div class="toast-container-custom">
+    {% for message in messages %}
+    <div class="toast text-bg-{{ message.tags|default:'primary' }}" role="alert">
+        <div class="toast-body d-flex align-items-center gap-2 w-100">
+            <span style="flex:1;">{{ message }}</span>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
         </div>
+    </div>
+    {% endfor %}
+</div>
 
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
-                // Weekly Report
-                const weeklyForm = document.getElementById('weeklyReportForm');
-                weeklyForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    const start = document.getElementById('weekStart').value;
-                    const end = document.getElementById('weekEnd').value;
-                    const url = `/reports/api/weekly/?start=${start}&end=${end}`;
+<script>
+document.addEventListener('DOMContentLoaded', function () {
 
-                    fetch(url)
-                        .then(res => res.json())
-                        .then(data => {
-                            const container = document.getElementById('weeklyReportTableContainer');
+    /* ══════════════════════════════════════
+       SIDEBAR — hover expand + pin toggle
+    ══════════════════════════════════════ */
+    const sidebar     = document.getElementById('sidebar');
+    const mainWrapper = document.getElementById('mainWrapper');
+    const backdrop    = document.getElementById('sidebarBackdrop');
+    const headerToggle= document.getElementById('headerToggle');
 
-                            // Build table HTML
-                            let html = `
-                                <table class="table table-bordered table-striped table-hover">
-                                    <thead class="table-success">
-                                        <tr>
-                                            <th>Tracking ID</th>
-                                            <th>Document Title</th>
-                                            <th>Action</th>
-                                            <th>From Office</th>
-                                            <th>To Office</th>
-                                            <th>Date</th>
-                                            <th>Days Stayed</th>
-                                            <th>Note</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                            `;
+    /* No pin sidebar and no main content shift on hover */
+    /* Sidebar still collapses by default and hover expansion will overlay content without moving it. */
 
-                            if (data.report_data.length === 0) {
-                                html += `<tr><td colspan="8" class="text-center text-muted">No weekly report data available</td></tr>`;
-                            } else {
-                                data.report_data.forEach(r => {
-                                    html += `
-                                        <tr>
-                                            <td>${r.tracking_id}</td>
-                                            <td>${r.title}</td>
-                                            <td>${r.action}</td>
-                                            <td>${r.from_office}</td>
-                                            <td>${r.to_office}</td>
-                                            <td>${r.timestamp}</td>
-                                            <td>${r.days_stayed}</td>
-                                            <td>${r.note}</td>
-                                        </tr>
-                                    `;
-                                });
-                            }
+    /* Mobile toggle */
+    headerToggle?.addEventListener('click', function (e) {
+        e.stopPropagation();
+        sidebar.classList.toggle('mobile-open');
+        backdrop.classList.toggle('show');
+    });
 
-                            html += `</tbody></table>`;
-                            container.innerHTML = html;
+    backdrop?.addEventListener('click', function () {
+        sidebar.classList.remove('mobile-open');
+        backdrop.classList.remove('show');
+    });
 
-                            // Set export links
-                            // document.getElementById('weeklyExportPdf').href = url + "&export=pdf";
-                            document.getElementById('weeklyExportExcel').href = url + "&export=excel";
+    /* ══════════════════════════════════════
+       DROPDOWN — user menu
+    ══════════════════════════════════════ */
+    const userToggle    = document.getElementById('headerUserToggle');
+    const userDropdown  = document.getElementById('headerDropdownMenu');
+    const notifToggle   = document.getElementById('notifToggle');
+    const notifDropdown = document.getElementById('notifDropdown');
 
-                            new bootstrap.Modal(document.getElementById('weeklyReportModal')).show();
-                        })
-                        .catch(err => console.error(err));
-                });
+    function closeAll() {
+        userDropdown.classList.remove('open');
+        userToggle.classList.remove('active');
+        notifDropdown.classList.remove('open');
+    }
 
-                // Monthly Report
-                const monthlyForm = document.getElementById('monthlyReportForm');
-                monthlyForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    const monthYear = document.getElementById('monthYear').value;
-                    const url = `/reports/api/monthly/?month_year=${monthYear}`;
+    userToggle?.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const isOpen = userDropdown.classList.contains('open');
+        closeAll();
+        if (!isOpen) {
+            userDropdown.classList.add('open');
+            userToggle.classList.add('active');
+        }
+    });
 
-                    fetch(url)
-                        .then(res => res.json())
-                        .then(data => {
-                            const container = document.getElementById('monthlyReportTableContainer');
+    /* Keyboard support */
+    userToggle?.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); userToggle.click(); }
+    });
 
-                            // Build table HTML
-                            let html = `
-                                <table class="table table-bordered table-striped table-hover">
-                                    <thead class="table-success">
-                                        <tr>
-                                            <th>Tracking ID</th>
-                                            <th>Document Title</th>
-                                            <th>Action</th>
-                                            <th>From Office</th>
-                                            <th>To Office</th>
-                                            <th>Date</th>
-                                            <th>Days Stayed</th>
-                                            <th>Note</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                            `;
+    notifToggle?.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const isOpen = notifDropdown.classList.contains('open');
+        closeAll();
+        if (!isOpen) notifDropdown.classList.add('open');
+    });
 
-                            if (data.report_data.length === 0) {
-                                html += `<tr><td colspan="8" class="text-center text-muted">No monthly report data available</td></tr>`;
-                            } else {
-                                data.report_data.forEach(r => {
-                                    html += `
-                                        <tr>
-                                            <td>${r.tracking_id}</td>
-                                            <td>${r.title}</td>
-                                            <td>${r.action}</td>
-                                            <td>${r.from_office}</td>
-                                            <td>${r.to_office}</td>
-                                            <td>${r.timestamp}</td>
-                                            <td>${r.days_stayed}</td>
-                                            <td>${r.note}</td>
-                                        </tr>
-                                    `;
-                                });
-                            }
+    /* Close when clicking outside */
+    document.addEventListener('click', function () { closeAll(); });
 
-                            html += `</tbody></table>`;
-                            container.innerHTML = html;
+    /* Prevent dropdown from closing when clicking inside it */
+    userDropdown?.addEventListener('click', function (e) { e.stopPropagation(); });
+    notifDropdown?.addEventListener('click', function (e) { e.stopPropagation(); });
 
-                            // Set export links
-                            // document.getElementById('monthlyExportPdf').href = url + "&export=pdf";
-                            document.getElementById('monthlyExportExcel').href = url + "&export=excel";
+    /* ══════════════════════════════════════
+       TOASTS
+    ══════════════════════════════════════ */
+    document.querySelectorAll('.toast').forEach(el => {
+        new bootstrap.Toast(el, { delay: 3500 }).show();
+    });
 
-                            new bootstrap.Modal(document.getElementById('monthlyReportModal')).show();
-                        })
-                        .catch(err => console.error(err));
-                });
-
-                // Per Document Report
-                const documentForm = document.getElementById('documentReportForm');
-
-                documentForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    const docId = document.getElementById('documentSelect').value;
-                    if (!docId) return;
-
-                    const url = `/reports/api/single/?document_id=${docId}`;
-
-                    fetch(url)
-                        .then(res => res.json())
-                        .then(data => {
-                            // Build table HTML
-                            let html = `
-                                <table class="table table-bordered table-striped table-hover">
-                                    <thead class="table-success">
-                                        <tr>
-                                            <th>Tracking ID</th>
-                                            <th>Document Title</th>
-                                            <th>Action</th>
-                                            <th>From Office</th>
-                                            <th>To Office</th>
-                                            <th>Date</th>
-                                            <th>Days Stayed</th>
-                                            <th>Note</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                            `;
-
-                            if (data.report_data.length === 0) {
-                                html += `<tr><td colspan="8" class="text-center text-muted">No report data available</td></tr>`;
-                            } else {
-                                data.report_data.forEach(r => {
-                                    html += `
-                                        <tr>
-                                            <td>${r.tracking_id}</td>
-                                            <td>${r.title}</td>
-                                            <td>${r.action}</td>
-                                            <td>${r.from_office}</td>
-                                            <td>${r.to_office}</td>
-                                            <td>${r.timestamp}</td>
-                                            <td>${r.days_stayed}</td>
-                                            <td>${r.note}</td>
-                                        </tr>
-                                    `;
-                                });
-                            }
-
-                            html += `</tbody></table>`;
-
-                            // Modal HTML
-                            const modalHtml = `
-                                <div class="modal fade" id="singleDocumentReportModal" tabindex="-1">
-                                    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-                                        <div class="modal-content">
-                                            <div class="modal-header bg-success text-white">
-                                                <h5 class="modal-title">Document Report</h5>
-                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <div class="table-responsive">${html}</div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <a href="${url}&export=excel" target="_blank" class="btn btn-success">
-                                                    <i class="bi bi-file-earmark-excel"></i> Export Excel
-                                                </a>
-                                                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-
-                            // Remove existing modal if any
-                            const existingModal = document.getElementById('singleDocumentReportModal');
-                            if (existingModal) existingModal.remove();
-
-                            // Append new modal and show
-                            const tempDiv = document.createElement('div');
-                            tempDiv.innerHTML = modalHtml;
-                            document.body.appendChild(tempDiv.firstElementChild); // firstElementChild is safe
-
-                            const modalEl = document.getElementById('singleDocumentReportModal');
-                            if (modalEl) {
-                                const modal = new bootstrap.Modal(modalEl);
-                                modal.show();
-                            } else {
-                                console.error('Modal element not found!');
-                            }
-                        })
-                        .catch(err => console.error(err));
-                });
-
+    /* ══════════════════════════════════════
+       SELECT2
+    ══════════════════════════════════════ */
+    $('#perDocumentReportModal').on('shown.bs.modal', function () {
+        const sel = $('#documentSelect');
+        if (!sel.hasClass('select2-hidden-accessible')) {
+            sel.select2({
+                dropdownParent: $('#perDocumentReportModal .modal-body'),
+                width: '100%',
+                placeholder: '-- Select a Document --',
+                allowClear: true
             });
-        </script>
+        }
+    });
 
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-
-                // Function to initialize Select2
-                function initPerDocSelect2() {
-                    const select = $('#documentSelect');
-
-                    if (!select.hasClass('select2-hidden-accessible')) {
-                        select.select2({
-                            dropdownParent: $('#perDocumentReportModal .modal-content'), // important
-                            width: '100%',
-                            placeholder: '-- Select a Document --',
-                            allowClear: true
-                        });
-                    }
+    /* ══════════════════════════════════════
+       QR SCANNER
+    ══════════════════════════════════════ */
+    const receiveModal = document.getElementById('receiveModal');
+    let html5QrcodeScanner;
+    if (receiveModal) {
+        receiveModal.addEventListener('shown.bs.modal', function () {
+            if (!html5QrcodeScanner) html5QrcodeScanner = new Html5Qrcode('qr-scanner');
+            Html5Qrcode.getCameras().then(cameras => {
+                if (cameras && cameras.length) {
+                    html5QrcodeScanner.start(cameras[0].id, { fps: 10, qrbox: 220 },
+                        qr => {
+                            const inp = document.getElementById('manualTracking');
+                            if (inp) { inp.value = qr.toUpperCase(); if (inp.form) inp.form.submit(); }
+                        }, () => {});
                 }
+            }).catch(console.error);
+        });
+        receiveModal.addEventListener('hidden.bs.modal', function () {
+            if (html5QrcodeScanner) html5QrcodeScanner.stop().then(() => html5QrcodeScanner.clear()).catch(console.error);
+        });
+    }
 
-                // Initialize when modal is shown
-                $('#perDocumentReportModal').on('shown.bs.modal', function () {
-                    initPerDocSelect2();
-                });
+    /* ══════════════════════════════════════
+       ROUTING SLIP
+    ══════════════════════════════════════ */
+    const routingModal = document.getElementById('routingSlipModal');
+    if (routingModal) {
+        routingModal.addEventListener('show.bs.modal', function (event) {
+            const documentId = event.relatedTarget?.getAttribute('data-document-id');
+            if (!documentId) return;
+            const body = routingModal.querySelector('.modal-body');
+            fetch(`/documents/routing-slip/${documentId}/`)
+                .then(r => r.text()).then(html => body.innerHTML = html)
+                .catch(() => body.innerHTML = '<p class="text-danger p-3">Error loading routing slip.</p>');
+        });
+    }
 
-                // Optional: also initialize on page load if modal is already open
-                initPerDocSelect2();
+    /* ══════════════════════════════════════
+       EDIT DOCUMENT MODAL
+    ══════════════════════════════════════ */
+    document.addEventListener('show.bs.modal', function (event) {
+        const modal = document.getElementById('editDocumentModal');
+        if (!modal || !event.target.id === 'editDocumentModal') return;
+        const documentId = event.relatedTarget?.getAttribute('data-document-id');
+        if (!documentId) return;
+        const content = document.getElementById('editDocumentModalContent');
+        content.innerHTML = '<div class="modal-body text-center p-5"><div class="spinner-border text-success"></div></div>';
+        fetch(`/documents/${documentId}/edit/modal/`)
+            .then(r => { if (!r.ok) throw new Error(); return r.text(); })
+            .then(html => content.innerHTML = html)
+            .catch(() => content.innerHTML = '<div class="modal-body text-danger text-center">Unable to load document.</div>');
+    });
 
+    /* ══════════════════════════════════════
+       RETRACT MODAL
+    ══════════════════════════════════════ */
+    document.querySelectorAll('.retract-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const docId = this.getAttribute('data-document-id');
+            document.getElementById('retractForm').action = `/documents/${docId}/retract/`;
+        });
+    });
+
+    /* ══════════════════════════════════════
+       ADD STATUS MODAL
+    ══════════════════════════════════════ */
+    const addStatusModal = document.getElementById('addStatusModal');
+    if (addStatusModal) {
+        addStatusModal.addEventListener('show.bs.modal', function (event) {
+            const documentId = event.relatedTarget?.getAttribute('data-document-id');
+            document.getElementById('addStatusForm').action = `/document/${documentId}/add_status/`;
+        });
+    }
+
+    /* ══════════════════════════════════════
+       REPORT TABLE BUILDER
+    ══════════════════════════════════════ */
+    function buildReportTable(data) {
+        let html = `<table class="table table-bordered table-hover" style="font-size:13px;">
+            <thead class="table-success">
+                <tr><th>Tracking ID</th><th>Document Title</th><th>Action</th>
+                    <th>From Office</th><th>To Office</th><th>Date</th>
+                    <th>Days Stayed</th><th>Note</th></tr>
+            </thead><tbody>`;
+        if (!data.length) {
+            html += `<tr><td colspan="8" class="text-center text-muted">No data available</td></tr>`;
+        } else {
+            data.forEach(r => {
+                html += `<tr>
+                    <td>${r.tracking_id}</td>
+                    <td class="text-wrap-break">${r.title}</td>
+                    <td>${r.action}</td>
+                    <td>${r.from_office}</td>
+                    <td>${r.to_office}</td>
+                    <td>${r.timestamp}</td>
+                    <td>${r.days_stayed}</td>
+                    <td class="text-wrap-break">${r.note}</td>
+                </tr>`;
             });
-        </script>
+        }
+        return html + '</tbody></table>';
+    }
 
+    /* Weekly Report */
+    document.getElementById('weeklyReportForm')?.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const start = document.getElementById('weekStart').value;
+        const end   = document.getElementById('weekEnd').value;
+        const url   = `/reports/api/weekly/?start=${start}&end=${end}`;
+        fetch(url).then(r => r.json()).then(data => {
+            document.getElementById('weeklyReportTableContainer').innerHTML = buildReportTable(data.report_data);
+            document.getElementById('weeklyExportExcel').href = url + '&export=excel';
+            new bootstrap.Modal(document.getElementById('weeklyReportModal')).show();
+        }).catch(console.error);
+    });
 
+    /* Monthly Report */
+    document.getElementById('monthlyReportForm')?.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const monthYear = document.getElementById('monthYear').value;
+        const url = `/reports/api/monthly/?month_year=${monthYear}`;
+        fetch(url).then(r => r.json()).then(data => {
+            document.getElementById('monthlyReportTableContainer').innerHTML = buildReportTable(data.report_data);
+            document.getElementById('monthlyExportExcel').href = url + '&export=excel';
+            new bootstrap.Modal(document.getElementById('monthlyReportModal')).show();
+        }).catch(console.error);
+    });
 
-        <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-        <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-        <script src="{% static 'js/homepage.js' %}"></script>
+    /* Per Document Report */
+    document.getElementById('documentReportForm')?.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const docId = document.getElementById('documentSelect').value;
+        if (!docId) return;
+        const url = `/reports/api/single/?document_id=${docId}`;
+        fetch(url).then(r => r.json()).then(data => {
+            const existing = document.getElementById('singleDocumentReportModal');
+            if (existing) existing.remove();
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <div class="modal fade" id="singleDocumentReportModal" tabindex="-1">
+                    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                        <div class="modal-content">
+                            <div class="modal-header bg-success text-white">
+                                <h5 class="modal-title">Document Report</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body"><div class="table-responsive">${buildReportTable(data.report_data)}</div></div>
+                            <div class="modal-footer">
+                                <a href="${url}&export=excel" target="_blank" class="btn btn-success text-white">
+                                    <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+                                </a>
+                                <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            document.body.appendChild(div.firstElementChild);
+            new bootstrap.Modal(document.getElementById('singleDocumentReportModal')).show();
+        }).catch(console.error);
+    });
 
-    </body>
+    /* ══════════════════════════════════════
+       NOTIFICATIONS POLLING
+    ══════════════════════════════════════ */
+    function loadNotifications() {
+        fetch('/notifications/api/')
+            .then(r => r.json())
+            .then(data => {
+                const badge = document.getElementById('notifBadge');
+                const list  = document.getElementById('notifList');
+                badge.style.display = data.count > 0 ? 'flex' : 'none';
+                badge.textContent = data.count;
+                if (list) list.innerHTML = data.html;
+            }).catch(console.error);
+    }
+    loadNotifications();
+    setInterval(loadNotifications, 5000);
 
+}); // end DOMContentLoaded
+
+/* ══════════════════════════════════════
+   PRINT ROUTING SLIP
+══════════════════════════════════════ */
+function printRoutingSlip() {
+    const slip = document.getElementById('routing-slip').outerHTML;
+    let styleHTML = '';
+    document.querySelectorAll('style, link[rel="stylesheet"]').forEach(s => styleHTML += s.outerHTML);
+    const w = window.open('', '', 'width=800,height=600');
+    w.document.write(`<html><head><title>Routing Slip</title>${styleHTML}</head><body>${slip}</body></html>`);
+    w.document.close(); w.focus(); w.print(); w.close();
+}
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
 </html>

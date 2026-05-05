@@ -1,0 +1,480 @@
+{% extends 'homepage.html' %}
+{% load static %}
+
+{% block title %}GovFlow — Settings{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ── Layout ──────────────────────────────────────── */
+    .settings-layout {
+        display: grid;
+        grid-template-columns: 220px 1fr;
+        gap: 20px;
+        align-items: start;
+    }
+
+    /* ── Sidebar Nav ─────────────────────────────────── */
+    .settings-nav {
+        background: #fff; border-radius: 14px;
+        box-shadow: 0 2px 12px rgba(0,0,0,.06);
+        border: 1px solid #eef2f7; overflow: hidden;
+        position: sticky; top: 80px;
+        animation: slideUp .4s ease both;
+    }
+    @keyframes slideUp {
+        from { opacity:0; transform:translateY(14px); }
+        to   { opacity:1; transform:translateY(0); }
+    }
+    .settings-nav-header {
+        padding: 16px 18px 12px;
+        border-bottom: 1px solid #f0f4f8;
+        font-size: 10.5px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: .8px;
+        color: #94a3b8;
+    }
+    .settings-nav-item {
+        display: flex; align-items: center; gap: 10px;
+        padding: 11px 18px; font-size: 13px; font-weight: 600;
+        color: #64748b; cursor: pointer; border: none;
+        background: transparent; width: 100%; text-align: left;
+        font-family: 'Poppins', sans-serif;
+        border-left: 3px solid transparent;
+        transition: background .15s, color .15s, border-color .15s;
+        text-decoration: none;
+    }
+    .settings-nav-item:hover { background: #f8fafc; color: #1a2433; }
+    .settings-nav-item.active {
+        background: rgba(26,122,74,.06);
+        color: #1a7a4a; border-left-color: #1a7a4a;
+    }
+    .settings-nav-item i { width: 16px; text-align: center; font-size: 13px; }
+
+    /* ── Settings Panels ─────────────────────────────── */
+    .settings-content { display: flex; flex-direction: column; gap: 20px; }
+
+    .settings-panel {
+        background: #fff; border-radius: 14px;
+        box-shadow: 0 2px 12px rgba(0,0,0,.06);
+        border: 1px solid #eef2f7; overflow: hidden;
+        animation: slideUp .4s ease .1s both;
+    }
+    .settings-panel:nth-child(2) { animation-delay: .17s; }
+    .settings-panel:nth-child(3) { animation-delay: .24s; }
+
+    .panel-header {
+        display: flex; align-items: center; gap: 12px;
+        padding: 18px 22px 14px;
+        border-bottom: 1px solid #f0f4f8;
+    }
+    .panel-header-icon {
+        width: 38px; height: 38px; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 15px; flex-shrink: 0;
+    }
+    .panel-header-icon.green  { background: rgba(26,122,74,.12); color: #1a7a4a; }
+    .panel-header-icon.blue   { background: rgba(59,130,246,.12); color: #2563eb; }
+    .panel-header-icon.orange { background: rgba(245,158,11,.12); color: #d97706; }
+    .panel-header-icon.red    { background: rgba(239,68,68,.12); color: #dc2626; }
+
+    .panel-header-text { display: flex; flex-direction: column; }
+    .panel-title { font-size: 14px; font-weight: 700; color: #1a2433; }
+    .panel-desc  { font-size: 11.5px; color: #94a3b8; margin-top: 1px; }
+
+    .panel-body { padding: 22px; }
+
+    /* ── Avatar Section ──────────────────────────────── */
+    .avatar-section {
+        display: flex; align-items: center; gap: 20px;
+        padding: 16px 20px; background: #f8fafc;
+        border-radius: 12px; margin-bottom: 20px;
+        border: 1px solid #eef2f7;
+    }
+    .avatar-circle {
+        width: 64px; height: 64px; border-radius: 16px;
+        background: linear-gradient(135deg, #1a7a4a, #145c38);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 24px; font-weight: 800; color: #fff;
+        flex-shrink: 0; letter-spacing: -1px;
+    }
+    .avatar-info { flex: 1; }
+    .avatar-name { font-size: 15px; font-weight: 700; color: #1a2433; }
+    .avatar-role {
+        display: inline-flex; align-items: center; gap: 5px;
+        font-size: 11px; font-weight: 700; padding: 3px 9px;
+        border-radius: 20px; margin-top: 4px;
+    }
+    .avatar-role.admin  { background: rgba(239,68,68,.1);  color: #dc2626; }
+    .avatar-role.staff  { background: rgba(26,122,74,.1);  color: #1a7a4a; }
+    .avatar-role.user   { background: rgba(59,130,246,.1); color: #2563eb; }
+    .avatar-joined { font-size: 11px; color: #94a3b8; margin-top: 3px; }
+
+    /* ── Form ────────────────────────────────────────── */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group.full { grid-column: span 2; }
+    .form-label {
+        font-size: 11.5px; font-weight: 600; color: #64748b; letter-spacing: .3px;
+    }
+    .form-label span { color: #dc2626; margin-left: 2px; }
+    .form-control {
+        width: 100%; padding: 9px 12px;
+        border: 1px solid #e0e6ed; border-radius: 8px;
+        font-size: 13px; font-family: 'Poppins', sans-serif;
+        color: #1a2433; outline: none; background: #f8fafc;
+        transition: border-color .2s, box-shadow .2s;
+        box-sizing: border-box;
+    }
+    .form-control:focus {
+        border-color: #1a7a4a;
+        box-shadow: 0 0 0 3px rgba(26,122,74,.1);
+        background: #fff;
+    }
+    .form-control:disabled {
+        background: #f0f4f8; color: #94a3b8; cursor: not-allowed;
+    }
+    .form-hint { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+
+    /* Password strength */
+    .pw-strength-bar {
+        height: 4px; border-radius: 2px; background: #f0f4f8;
+        margin-top: 6px; overflow: hidden;
+    }
+    .pw-strength-fill {
+        height: 100%; border-radius: 2px;
+        transition: width .3s, background .3s;
+        width: 0%;
+    }
+    .pw-strength-label {
+        font-size: 11px; font-weight: 600; margin-top: 4px;
+        display: none;
+    }
+
+    /* ── Panel Footer ────────────────────────────────── */
+    .panel-footer {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 14px 22px; border-top: 1px solid #f0f4f8;
+        background: #fafbfc;
+    }
+    .panel-footer-note { font-size: 11.5px; color: #94a3b8; }
+
+    .btn-save {
+        display: flex; align-items: center; gap: 7px;
+        padding: 9px 22px; border: none; border-radius: 9px;
+        background: #1a7a4a; color: #fff; font-size: 13px;
+        font-weight: 600; font-family: 'Poppins', sans-serif;
+        cursor: pointer; transition: background .2s, transform .15s;
+        box-shadow: 0 2px 8px rgba(26,122,74,.25);
+    }
+    .btn-save:hover { background: #145c38; transform: translateY(-1px); }
+
+    /* ── Info Cards (read-only) ──────────────────────── */
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .info-item {
+        background: #f8fafc; border-radius: 10px;
+        padding: 12px 15px; border: 1px solid #eef2f7;
+    }
+    .info-item-label {
+        font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: .6px; color: #94a3b8; margin-bottom: 4px;
+    }
+    .info-item-value { font-size: 13px; font-weight: 600; color: #1a2433; }
+    .info-item-value.muted { color: #94a3b8; font-weight: 400; font-style: italic; }
+
+    /* ── Toast ───────────────────────────────────────── */
+    .toast { position:fixed; bottom:26px; right:26px; background:#1a2433; color:#fff; padding:11px 16px; border-radius:10px; font-size:12.5px; font-weight:500; display:flex; align-items:center; gap:9px; box-shadow:0 8px 24px rgba(0,0,0,.2); z-index:9999; transform:translateY(70px); opacity:0; transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .3s; pointer-events:none; max-width:360px; }
+    .toast.show { transform:translateY(0); opacity:1; }
+    .toast.success i { color:#4ade80; }
+    .toast.error   i { color:#f87171; }
+
+    @media (max-width: 900px) {
+        .settings-layout { grid-template-columns: 1fr; }
+        .settings-nav { position: static; }
+        .form-grid, .info-grid { grid-template-columns: 1fr; }
+        .form-group.full { grid-column: span 1; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-layout">
+
+    <!-- ══ LEFT: NAV ══ -->
+    <div class="settings-nav">
+        <div class="settings-nav-header">Settings</div>
+        <a href="#profile"  class="settings-nav-item active" onclick="scrollToSection('profile', this)"><i class="fas fa-user"></i> Profile</a>
+        <a href="#password" class="settings-nav-item"        onclick="scrollToSection('password', this)"><i class="fas fa-lock"></i> Password</a>
+        <a href="#account"  class="settings-nav-item"        onclick="scrollToSection('account', this)"><i class="fas fa-circle-info"></i> Account Info</a>
+    </div>
+
+    <!-- ══ RIGHT: PANELS ══ -->
+    <div class="settings-content">
+
+        <!-- ── Profile Panel ── -->
+        <div class="settings-panel" id="profile">
+            <div class="panel-header">
+                <div class="panel-header-icon green"><i class="fas fa-user"></i></div>
+                <div class="panel-header-text">
+                    <div class="panel-title">Profile Information</div>
+                    <div class="panel-desc">Update your name, email, and department</div>
+                </div>
+            </div>
+            <div class="panel-body">
+
+                <!-- Avatar preview -->
+                <div class="avatar-section">
+                    <div class="avatar-circle" id="avatarInitials">
+                        {% if request.user.first_name %}{{ request.user.first_name|first|upper }}{% if request.user.last_name %}{{ request.user.last_name|first|upper }}{% endif %}{% else %}{{ request.user.username|first|upper }}{% endif %}
+                    </div>
+                    <div class="avatar-info">
+                        <div class="avatar-name" id="avatarName">
+                            {{ request.user.get_full_name|default:request.user.username }}
+                        </div>
+                        <div>
+                            {% if request.user.is_superuser %}
+                                <span class="avatar-role admin">
+                                    <i class="fas fa-shield-halved"></i> Super Admin
+                                </span>
+                            {% elif request.user.is_staff %}
+                                <span class="avatar-role staff">
+                                    <i class="fas fa-user-tie"></i> Admin
+                                </span>
+                            {% else %}
+                                <span class="avatar-role user">
+                                    <i class="fas fa-user"></i> Staff
+                                </span>
+                            {% endif %}
+                        </div>
+                        <div class="avatar-joined">
+                            Member since {{ request.user.date_joined|date:"F Y" }}
+                        </div>
+                    </div>
+                </div>
+
+                <form method="POST" action="{% url 'settings' %}">
+                    {% csrf_token %}
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">First Name <span>*</span></label>
+                            <input type="text" name="first_name" class="form-control"
+                                   value="{{ request.user.first_name }}"
+                                   oninput="updatePreview()" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Last Name <span>*</span></label>
+                            <input type="text" name="last_name" class="form-control"
+                                   value="{{ request.user.last_name }}"
+                                   oninput="updatePreview()" required>
+                        </div>
+                        <div class="form-group full">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" name="email" class="form-control"
+                                   value="{{ request.user.email }}"
+                                   placeholder="your@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Department</label>
+                            <select name="department" class="form-control">
+                                <option value="">Select department</option>
+                                {% for value, label in department_choices %}
+                                <option value="{{ value }}" {% if request.user.userprofile.department == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Position / Designation</label>
+                            <input type="text" name="position" class="form-control"
+                                   value="{{ request.user.userprofile.position }}"
+                                   placeholder="e.g. Records Officer">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="panel-footer">
+                <span class="panel-footer-note"><i class="fas fa-circle-info" style="color:#1a7a4a;margin-right:5px;"></i>Username cannot be changed.</span>
+                <button class="btn-save" onclick="document.querySelector('#profile form').submit()">
+                    <i class="fas fa-floppy-disk"></i> Save Profile
+                </button>
+            </div>
+        </div>
+
+        <!-- ── Password Panel ── -->
+        <div class="settings-panel" id="password">
+            <div class="panel-header">
+                <div class="panel-header-icon blue"><i class="fas fa-lock"></i></div>
+                <div class="panel-header-text">
+                    <div class="panel-title">Change Password</div>
+                    <div class="panel-desc">Use a strong password with at least 8 characters</div>
+                </div>
+            </div>
+            <div class="panel-body">
+                <form method="POST" action="{% url 'settings' %}">
+                    {% csrf_token %}
+                    <div class="form-grid">
+                        <div class="form-group full">
+                            <label class="form-label">Current Password <span>*</span></label>
+                            <input type="password" name="current_password" class="form-control"
+                                   placeholder="Enter your current password" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">New Password <span>*</span></label>
+                            <input type="password" name="password" id="newPassword"
+                                   class="form-control" placeholder="At least 8 characters"
+                                   oninput="checkPasswordStrength(this.value)" required>
+                            <div class="pw-strength-bar">
+                                <div class="pw-strength-fill" id="pwStrengthFill"></div>
+                            </div>
+                            <div class="pw-strength-label" id="pwStrengthLabel"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Confirm New Password <span>*</span></label>
+                            <input type="password" name="confirm_password" id="confirmPassword"
+                                   class="form-control" placeholder="Repeat new password"
+                                   oninput="checkConfirm()" required>
+                            <div class="form-hint" id="confirmHint"></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="panel-footer">
+                <span class="panel-footer-note"><i class="fas fa-shield-halved" style="color:#2563eb;margin-right:5px;"></i>You'll stay logged in after changing your password.</span>
+                <button class="btn-save" style="background:#2563eb;box-shadow:0 2px 8px rgba(37,99,235,.25);"
+                        onclick="document.querySelector('#password form').submit()">
+                    <i class="fas fa-key"></i> Update Password
+                </button>
+            </div>
+        </div>
+
+        <!-- ── Account Info Panel ── -->
+        <div class="settings-panel" id="account">
+            <div class="panel-header">
+                <div class="panel-header-icon orange"><i class="fas fa-circle-info"></i></div>
+                <div class="panel-header-text">
+                    <div class="panel-title">Account Information</div>
+                    <div class="panel-desc">Read-only details about your account</div>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-item-label">Username</div>
+                        <div class="info-item-value">{{ request.user.username }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-item-label">Role</div>
+                        <div class="info-item-value">
+                            {% if request.user.is_superuser %}Super Admin{% elif request.user.is_staff %}Admin{% else %}Staff{% endif %}
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-item-label">Department</div>
+                        <div class="info-item-value">
+                            {{ request.user.userprofile.department|default:"—" }}
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-item-label">Position</div>
+                        <div class="info-item-value">
+                            {{ request.user.userprofile.position|default:"—" }}
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-item-label">Member Since</div>
+                        <div class="info-item-value">{{ request.user.date_joined|date:"M d, Y" }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-item-label">Last Login</div>
+                        <div class="info-item-value">
+                            {% if request.user.last_login %}{{ request.user.last_login|date:"M d, Y H:i" }}{% else %}Never{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function scrollToSection(sectionId, navItem) {
+        // Update active nav item
+        document.querySelectorAll('.settings-nav-item').forEach(item => item.classList.remove('active'));
+        navItem.classList.add('active');
+
+        // Scroll to section
+        const section = document.getElementById(sectionId);
+        if (section) {
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
+    function updatePreview() {
+        const first = document.querySelector('[name=first_name]').value || '';
+        const last = document.querySelector('[name=last_name]').value || '';
+        const initials = (first.charAt(0) + last.charAt(0)).toUpperCase() || document.querySelector('[name=first_name]').value.charAt(0).toUpperCase() || 'U';
+        document.getElementById('avatarInitials').textContent = initials;
+        document.getElementById('avatarName').textContent = (first + ' ' + last).trim() || 'User';
+    }
+
+    function checkPasswordStrength(password) {
+        const strengthFill = document.getElementById('pwStrengthFill');
+        const strengthLabel = document.getElementById('pwStrengthLabel');
+
+        let strength = 0;
+        if (password.length >= 8) strength++;
+        if (/[A-Z]/.test(password)) strength++;
+        if (/[a-z]/.test(password)) strength++;
+        if (/[0-9]/.test(password)) strength++;
+        if (/[^A-Za-z0-9]/.test(password)) strength++;
+
+        const colors = ['#dc2626', '#f59e0b', '#eab308', '#84cc16', '#22c55e'];
+        const labels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+
+        strengthFill.style.width = (strength / 5) * 100 + '%';
+        strengthFill.style.background = colors[strength - 1] || '#dc2626';
+        strengthLabel.textContent = labels[strength - 1] || 'Very Weak';
+        strengthLabel.style.color = colors[strength - 1] || '#dc2626';
+        strengthLabel.style.display = password ? 'block' : 'none';
+    }
+
+    function checkConfirm() {
+        const newPw = document.getElementById('newPassword').value;
+        const confirmPw = document.getElementById('confirmPassword').value;
+        const hint = document.getElementById('confirmHint');
+
+        if (!confirmPw) {
+            hint.textContent = '';
+            return;
+        }
+        if (newPw === confirmPw) {
+            hint.textContent = '✓ Passwords match';
+            hint.style.color = '#22c55e';
+        } else {
+            hint.textContent = '✗ Passwords do not match';
+            hint.style.color = '#dc2626';
+        }
+    }
+
+    // Show toast messages
+    {% if messages %}
+        {% for message in messages %}
+            showToast('{{ message.tags|default:"info" }}', '{{ message }}');
+        {% endfor %}
+    {% endif %}
+
+    function showToast(type, message) {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i> ${message}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 100);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3500);
+    }
+</script>
+{% endblock %}

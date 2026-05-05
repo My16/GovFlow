@@ -3,168 +3,442 @@
 {% block title %} GovFlowApp - Completed Documents {% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/all_documents.css' %}">
 
-<div class="w-100 my-4">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-3 px-3">
-        <h2 class="h4 fw-bold">Completed Documents</h2>
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Page ─────────────────────────────────────────── */
+.gf-page { width: 100%; padding: 8px 0 32px; }
+
+.gf-page-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 22px; flex-wrap: wrap; gap: 12px;
+    animation: slideUp .35s ease both;
+}
+.gf-page-title {
+    font-size: 20px; font-weight: 800; color: #1a2433; margin: 0;
+    display: flex; align-items: center; gap: 10px;
+}
+.gf-page-title i { color: #0f766e; font-size: 18px; }
+
+/* ── Stats Row ────────────────────────────────────── */
+.gf-stats-row {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 20px; margin-bottom: 24px;
+}
+.gf-stat-card {
+    background: #fff; border-radius: 16px; padding: 20px;
+    display: flex; align-items: center; gap: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,.08); border: 1px solid #f1f5f9;
+    animation: slideUp .4s ease both;
+    transition: all .25s cubic-bezier(.4,0,.2,1);
+    position: relative; overflow: hidden;
+}
+.gf-stat-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, var(--sc), var(--scl));
+}
+.gf-stat-card.teal   { --sc: #0f766e; --scl: #2dd4bf; }
+.gf-stat-card.orange { --sc: #d97706; --scl: #fbbf24; }
+.gf-stat-card.red    { --sc: #dc2626; --scl: #f87171; }
+.gf-stat-card.blue   { --sc: #2563eb; --scl: #60a5fa; }
+.gf-stat-card:nth-child(2) { animation-delay: .1s; }
+.gf-stat-card:nth-child(3) { animation-delay: .2s; }
+.gf-stat-card:nth-child(4) { animation-delay: .3s; }
+.gf-stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,.12); }
+
+.gf-stat-icon {
+    width: 52px; height: 52px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+}
+.gf-stat-icon.teal   { background: rgba(15,118,110,.12); color: #0f766e; }
+.gf-stat-icon.orange { background: rgba(245,158,11,.12); color: #d97706; }
+.gf-stat-icon.red    { background: rgba(239,68,68,.12);  color: #dc2626; }
+.gf-stat-icon.blue   { background: rgba(37,99,235,.12);  color: #2563eb; }
+
+.gf-stat-info { display: flex; flex-direction: column; flex: 1; }
+.gf-stat-value { font-size: 28px; font-weight: 800; color: #1a2433; line-height: 1; margin-bottom: 2px; }
+.gf-stat-label { font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+
+/* ── Table Card ───────────────────────────────────── */
+.gf-table-card {
+    background: #fff; border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    border: 1px solid #eef2f7; overflow: hidden;
+    animation: slideUp .4s ease .2s both;
+}
+
+/* ── Toolbar ──────────────────────────────────────── */
+.gf-toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px; border-bottom: 1px solid #f0f4f8;
+    gap: 10px; flex-wrap: wrap;
+}
+.gf-toolbar-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.gf-table-title {
+    font-size: 14px; font-weight: 700; color: #1a2433;
+    display: flex; align-items: center; gap: 7px;
+}
+.gf-table-title i { color: #0f766e; }
+.gf-count-badge {
+    background: rgba(15,118,110,.10); color: #0f766e;
+    font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px;
+}
+
+/* ── Filter Bar ───────────────────────────────────── */
+.gf-filter-bar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 12px 20px; border-bottom: 1px solid #f0f4f8; background: #fafbfc;
+}
+.gf-filter-label { font-size: 11.5px; font-weight: 600; color: #78909c; }
+.gf-filter-select {
+    border: 1px solid #e0e6ed; border-radius: 7px;
+    padding: 6px 10px; font-size: 12.5px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #1a2433; outline: none; background: #fff;
+    cursor: pointer; transition: border-color .2s;
+}
+.gf-filter-select:focus { border-color: #0f766e; }
+
+/* ── Data Table ───────────────────────────────────── */
+.gf-table-scroll { max-height: 560px; overflow: auto; }
+.gf-data-table { width: 100%; border-collapse: collapse; min-width: 900px; }
+
+.gf-data-table thead th {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    padding: 12px 16px; text-align: left;
+    font-size: 10.5px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .8px;
+    color: #64748b; border-bottom: 2px solid #e2e8f0;
+    position: sticky; top: 0; z-index: 10; white-space: nowrap;
+}
+
+.gf-data-table tbody tr {
+    border-bottom: 1px solid #f1f5f9;
+    transition: background .15s;
+}
+.gf-data-table tbody tr:last-child { border-bottom: none; }
+.gf-data-table tbody tr:hover {
+    background: linear-gradient(135deg, #f8fafc 0%, #f0f4f8 100%);
+}
+.gf-data-table td {
+    padding: 14px 16px; color: #374151;
+    vertical-align: middle; font-size: 13px;
+}
+
+/* ── Document cell ────────────────────────────────── */
+.doc-title    { font-weight: 700; font-size: 13px; color: #1a2433; margin-bottom: 2px; }
+.doc-sender   { font-size: 11.5px; color: #6b7280; margin-bottom: 3px; display: flex; align-items: center; gap: 4px; }
+.doc-sender i { font-size: 10px; color: #9ca3af; }
+.doc-tracking {
+    font-size: 10px; color: #9ca3af;
+    font-family: 'Monaco', 'Menlo', monospace;
+    background: #f3f4f6; padding: 2px 6px;
+    border-radius: 4px; display: inline-block;
+}
+
+/* ── Office cell ──────────────────────────────────── */
+.office-info { font-size: 12px; color: #4b5563; display: flex; align-items: center; gap: 6px; }
+.office-info i { color: #9ca3af; font-size: 11px; }
+
+/* ── Date cell ────────────────────────────────────── */
+.date-main { font-size: 12px; font-weight: 600; color: #1a2433; }
+.date-sub  { font-size: 10px; color: #9ca3af; }
+
+/* ── Tags ─────────────────────────────────────────── */
+.tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 9px; border-radius: 20px;
+    font-size: 10.5px; font-weight: 700; white-space: nowrap;
+}
+.completed-tag       { background: rgba(20,184,166,.1);  color: #0f766e; }
+.high-priority-tag   { background: rgba(239,68,68,.1);   color: #dc2626; }
+.medium-priority-tag { background: rgba(245,158,11,.1);  color: #d97706; }
+.low-priority-tag    { background: rgba(22,163,74,.1);   color: #16a34a; }
+
+/* ── Action buttons ───────────────────────────────── */
+.action-buttons { display: flex; align-items: center; gap: 5px; justify-content: flex-end; }
+.action-btn {
+    width: 32px; height: 32px; border-radius: 8px;
+    border: none; display: flex; align-items: center;
+    justify-content: center; font-size: 13px;
+    cursor: pointer; transition: all .2s ease; flex-shrink: 0;
+    text-decoration: none;
+}
+.action-btn:hover { transform: translateY(-1px); }
+.btn-view { background: rgba(37,99,235,.1); color: #2563eb; }
+.btn-view:hover { background: rgba(37,99,235,.2); color: #2563eb; }
+.btn-qr   { background: rgba(139,92,246,.1); color: #7c3aed; }
+.btn-qr:hover { background: rgba(139,92,246,.2); }
+
+/* ── Pagination ───────────────────────────────────── */
+.gf-pagination-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; border-top: 1px solid #f0f4f8;
+    flex-wrap: wrap; gap: 10px;
+}
+.gf-pagination-info { font-size: 12.5px; color: #78909c; }
+.gf-pagination-info strong { color: #1a2433; }
+.gf-pagination-links { display: flex; align-items: center; gap: 4px; }
+.gf-page-btn {
+    width: 32px; height: 32px; border-radius: 8px;
+    border: 1px solid #e0e6ed; background: #fff;
+    color: #64748b; font-size: 12.5px; font-weight: 600;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    cursor: pointer; display: flex; align-items: center;
+    justify-content: center; text-decoration: none;
+    transition: background .15s, border-color .15s;
+}
+.gf-page-btn:hover { background: #f0f4f8; border-color: #cdd5df; color: #1a2433; }
+.gf-page-btn.active { background: #16a34a; border-color: #16a34a; color: #fff; }
+.gf-page-btn.disabled { opacity: .4; pointer-events: none; }
+
+/* ── Empty state ──────────────────────────────────── */
+.empty-state { text-align: center; padding: 48px 20px; }
+.empty-state i { font-size: 32px; margin-bottom: 12px; display: block; color: #d1d9e0; }
+.empty-state p { font-size: 13.5px; color: #90a4ae; }
+
+/* ── Responsive ───────────────────────────────────── */
+@media (max-width: 900px)  { .gf-stats-row { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px)  { .gf-stats-row { grid-template-columns: 1fr; } }
+</style>
+
+
+<div class="gf-page">
+
+    <!-- Page Header -->
+    <div class="gf-page-header">
+        <h2 class="gf-page-title">
+            <i class="bi bi-check2-all"></i> Completed Documents
+        </h2>
     </div>
 
-    <!-- Filter Bar (Optional: Only priority filter) -->
-    <div class="card shadow-sm rounded-3 border p-3 mb-3 w-100">
-        <div class="d-flex flex-wrap align-items-center gap-3">
-
-            <div class="d-flex align-items-center gap-2 me-3">
-                <i class="bi bi-funnel text-secondary"></i>
-                <span class="fw-semibold text-secondary small">Filters:</span>
+    <!-- Stats Row -->
+    <div class="gf-stats-row">
+        <div class="gf-stat-card teal">
+            <div class="gf-stat-icon teal"><i class="bi bi-check2-all"></i></div>
+            <div class="gf-stat-info">
+                <span class="gf-stat-value">{{ documents.paginator.count }}</span>
+                <span class="gf-stat-label">Total Completed</span>
             </div>
-
-            <!-- Sender Filter -->
-            <div class="d-flex align-items-center gap-2">
-                <label for="senderFilter" class="form-label text-uppercase text-secondary small mb-0">Sender</label>
-                <select id="senderFilter" class="form-select form-select-sm" onchange="applyFilters()">
-                    <option value="All" {% if sender_filter == 'All' %}selected{% endif %}>All Senders</option>
-                    {% for sender in all_senders %}
-                        <option value="{{ sender.id }}" {% if sender_filter == sender.id|stringformat:"s" %}selected{% endif %}>
-                            {{ sender.get_full_name }}
-                        </option>
-                    {% endfor %}
-                </select>
+        </div>
+        <div class="gf-stat-card red">
+            <div class="gf-stat-icon red"><i class="bi bi-exclamation-circle-fill"></i></div>
+            <div class="gf-stat-info">
+                <span class="gf-stat-value">{{ high_count|default:"—" }}</span>
+                <span class="gf-stat-label">High Priority</span>
             </div>
-
-
-            <!-- Priority Filter -->
-            <div class="d-flex align-items-center gap-2">
-                <label for="priorityFilter" class="form-label text-uppercase text-secondary small mb-0">Priority</label>
-                <select id="priorityFilter" class="form-select form-select-sm" onchange="applyFilters()">
-                    <option value="All" {% if priority_filter == 'All' %}selected{% endif %}>All Priorities</option>
-                    <option value="High" {% if priority_filter == 'High' %}selected{% endif %}>High</option>
-                    <option value="Medium" {% if priority_filter == 'Medium' %}selected{% endif %}>Medium</option>
-                    <option value="Low" {% if priority_filter == 'Low' %}selected{% endif %}>Low</option>
-                </select>
+        </div>
+        <div class="gf-stat-card orange">
+            <div class="gf-stat-icon orange"><i class="bi bi-dash-circle-fill"></i></div>
+            <div class="gf-stat-info">
+                <span class="gf-stat-value">{{ medium_count|default:"—" }}</span>
+                <span class="gf-stat-label">Medium Priority</span>
             </div>
-
+        </div>
+        <div class="gf-stat-card blue">
+            <div class="gf-stat-icon blue"><i class="bi bi-check-circle-fill"></i></div>
+            <div class="gf-stat-info">
+                <span class="gf-stat-value">{{ low_count|default:"—" }}</span>
+                <span class="gf-stat-label">Low Priority</span>
+            </div>
         </div>
     </div>
 
-    <!-- Completed Document Table -->
-    <div class="card shadow-sm rounded-3 border w-100">
-        <div class="table-scroll-wrapper">
-            <table class="table table-hover align-middle mb-0 text-secondary small">
-                <thead class="table-light sticky-top">
+    <!-- Table Card -->
+    <div class="gf-table-card">
+
+        <!-- Toolbar -->
+        <div class="gf-toolbar">
+            <div class="gf-toolbar-left">
+                <span class="gf-table-title">
+                    <i class="bi bi-check2-all"></i> Completed Documents
+                </span>
+                <span class="gf-count-badge">{{ documents.paginator.count }} total</span>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="gf-filter-bar">
+            <span class="gf-filter-label"><i class="bi bi-funnel" style="margin-right:3px;"></i> Filter:</span>
+
+            <select id="senderFilter" class="gf-filter-select" onchange="applyFilters()">
+                <option value="All" {% if sender_filter == 'All' %}selected{% endif %}>All Senders</option>
+                {% for sender in all_senders %}
+                    <option value="{{ sender.id }}"
+                        {% if sender_filter == sender.id|stringformat:"s" %}selected{% endif %}>
+                        {{ sender.get_full_name }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <select id="priorityFilter" class="gf-filter-select" onchange="applyFilters()">
+                <option value="All" {% if priority_filter == 'All' %}selected{% endif %}>All Priorities</option>
+                <option value="High"   {% if priority_filter == 'High'   %}selected{% endif %}>High</option>
+                <option value="Medium" {% if priority_filter == 'Medium' %}selected{% endif %}>Medium</option>
+                <option value="Low"    {% if priority_filter == 'Low'    %}selected{% endif %}>Low</option>
+            </select>
+
+            {% if sender_filter and sender_filter != 'All' or priority_filter and priority_filter != 'All' %}
+            <a href="?" style="font-size:12px;color:#dc2626;text-decoration:none;font-weight:700;">
+                <i class="bi bi-x-lg"></i> Clear
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Table -->
+        <div class="gf-table-scroll">
+            <table class="gf-data-table">
+                <thead>
                     <tr>
-                        <th>Tracking ID</th>
-                        <th>Title</th>
-                        <th>Sender</th>
+                        <th>Document</th>
                         <th>Priority</th>
+                        <th>Status</th>
                         <th>Current Office</th>
                         <th>Created</th>
-                        <th class="text-end">Actions</th>
+                        <th style="text-align:right;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for doc in documents %}
-                        <tr class="hover-bg-light">
-                            <td class="font-monospace text-secondary">{{ doc.tracking_id }}</td>
-                            <td class="fw-medium text-dark">{{ doc.title }}</td>
-                            <td>{{ doc.sender.first_name }} {{ doc.sender.last_name|default:"N/A" }}</td>
+                    <tr>
+                        <!-- Document -->
+                        <td>
+                            <div class="doc-title">{{ doc.title }}</div>
+                            <div class="doc-sender">
+                                <i class="bi bi-person-fill"></i>
+                                {{ doc.sender.first_name }} {{ doc.sender.last_name|default:"N/A" }}
+                            </div>
+                            <span class="doc-tracking">{{ doc.tracking_id }}</span>
+                        </td>
 
-                            <!-- Priority -->
-                            <td>
-                                {% if doc.priority == "High" %}
-                                    <span class="badge border border-danger text-danger bg-transparent">{{ doc.priority }}</span>
-                                {% elif doc.priority == "Medium" %}
-                                    <span class="badge border border-warning text-warning bg-transparent">{{ doc.priority }}</span>
-                                {% else %}
-                                    <span class="badge border border-secondary text-secondary bg-transparent">{{ doc.priority }}</span>
-                                {% endif %}
-                            </td>
+                        <!-- Priority -->
+                        <td>
+                            {% if doc.priority == 'High' %}
+                                <span class="tag high-priority-tag">
+                                    <i class="bi bi-exclamation-circle-fill"></i>High
+                                </span>
+                            {% elif doc.priority == 'Medium' %}
+                                <span class="tag medium-priority-tag">
+                                    <i class="bi bi-dash-circle-fill"></i>Medium
+                                </span>
+                            {% else %}
+                                <span class="tag low-priority-tag">
+                                    <i class="bi bi-check-circle-fill"></i>Low
+                                </span>
+                            {% endif %}
+                        </td>
 
-                            <td class="text-muted">
-                                <div class="d-flex align-items-center gap-1">
-                                    <i class="bi bi-building"></i> {{ doc.current_office.get_full_name|default:"N/A" }}
-                                </div>
-                            </td>
+                        <!-- Status (always Completed here) -->
+                        <td>
+                            <span class="tag completed-tag">
+                                <i class="bi bi-check2-all"></i>Completed
+                            </span>
+                        </td>
 
-                            <td class="text-muted">{{ doc.created_at|date:"M d, Y, h:i A" }}</td>
+                        <!-- Current Office -->
+                        <td>
+                            <div class="office-info">
+                                <i class="bi bi-building"></i>
+                                {{ doc.current_office.get_full_name|default:"N/A" }}
+                            </div>
+                        </td>
 
-                            <td class="text-end d-flex justify-content-end gap-2">
-                                <!-- View Details Button -->
-                                <a href="{% url 'document_detail' doc.pk %}" class="btn btn-sm btn-outline-success d-flex align-items-center justify-content-center">
-                                    <i class="bi bi-eye"></i>
+                        <!-- Created -->
+                        <td>
+                            <div class="date-main">{{ doc.created_at|date:"M d, Y" }}</div>
+                            <div class="date-sub">{{ doc.created_at|date:"h:i A" }}</div>
+                        </td>
+
+                        <!-- Actions -->
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{% url 'document_detail' doc.pk %}"
+                                   class="action-btn btn-view" title="View Details">
+                                    <i class="bi bi-file-earmark-text"></i>
                                 </a>
-                                <!-- QR Code Button -->
-                                <a href="" target="_blank" class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center" data-bs-toggle="modal"
+                                <button class="action-btn btn-qr" title="QR / Routing Slip"
+                                    data-bs-toggle="modal"
                                     data-bs-target="#routingSlipModal"
                                     data-document-id="{{ doc.id }}">
                                     <i class="bi bi-qr-code"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7" class="text-center py-3 text-muted">No completed documents found.</td>
-                        </tr>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <i class="bi bi-check2-all"></i>
+                                <p>No completed documents found.</p>
+                            </div>
+                        </td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
 
         <!-- Pagination -->
-        <div class="card-footer d-flex justify-content-between align-items-center small">
-            <span>Showing {{ documents.start_index }} - {{ documents.end_index }} of {{ documents.paginator.count }} document{{ documents.paginator.count|pluralize }}</span>
-            
-            <nav aria-label="Document pagination">
-                <ul class="pagination pagination-sm mb-0 pagination-outline-success">
-                    {% if documents.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ documents.previous_page_number }}&priority={{ priority_filter }}&q={{ search_query }}" aria-label="Previous">&laquo;</a>
-                        </li>
-                    {% else %}
-                        <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
-                    {% endif %}
+        <div class="gf-pagination-bar">
+            <div class="gf-pagination-info">
+                Showing <strong>{{ documents.start_index }}</strong>–<strong>{{ documents.end_index }}</strong>
+                of <strong>{{ documents.paginator.count }}</strong>
+                document{{ documents.paginator.count|pluralize }}
+            </div>
+            <div class="gf-pagination-links">
+                {% if documents.has_previous %}
+                    <a class="gf-page-btn" href="?page=1&priority={{ priority_filter }}&sender={{ sender_filter }}">«</a>
+                    <a class="gf-page-btn" href="?page={{ documents.previous_page_number }}&priority={{ priority_filter }}&sender={{ sender_filter }}">‹</a>
+                {% else %}
+                    <span class="gf-page-btn disabled">«</span>
+                    <span class="gf-page-btn disabled">‹</span>
+                {% endif %}
 
-                    {% for num in documents.paginator.page_range %}
-                        {% if documents.number == num %}
-                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-                        {% elif num > documents.number|add:'-3' and num < documents.number|add:'3' %}
-                            <li class="page-item"><a class="page-link" href="?page={{ num }}&priority={{ priority_filter }}&q={{ search_query }}">{{ num }}</a></li>
-                        {% endif %}
-                    {% endfor %}
-
-                    {% if documents.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ documents.next_page_number }}&priority={{ priority_filter }}&q={{ search_query }}" aria-label="Next">&raquo;</a>
-                        </li>
-                    {% else %}
-                        <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                {% for num in documents.paginator.page_range %}
+                    {% if documents.number == num %}
+                        <span class="gf-page-btn active">{{ num }}</span>
+                    {% elif num >= documents.number|add:'-2' and num <= documents.number|add:'2' %}
+                        <a class="gf-page-btn" href="?page={{ num }}&priority={{ priority_filter }}&sender={{ sender_filter }}">{{ num }}</a>
                     {% endif %}
-                </ul>
-            </nav>
+                {% endfor %}
+
+                {% if documents.has_next %}
+                    <a class="gf-page-btn" href="?page={{ documents.next_page_number }}&priority={{ priority_filter }}&sender={{ sender_filter }}">›</a>
+                    <a class="gf-page-btn" href="?page={{ documents.paginator.num_pages }}&priority={{ priority_filter }}&sender={{ sender_filter }}">»</a>
+                {% else %}
+                    <span class="gf-page-btn disabled">›</span>
+                    <span class="gf-page-btn disabled">»</span>
+                {% endif %}
+            </div>
         </div>
-
 
     </div>
 </div>
 
-<script src="{% static 'js/all_documents.js' %}"></script>
 
 <script>
-    function applyFilters() {
-        const priority = document.getElementById('priorityFilter').value;
-        const sender = document.getElementById('senderFilter').value;
-        const searchInput = document.getElementById('globalSearch'); // optional
-        const query = searchInput ? searchInput.value : '';
-
-        let url = `?priority=${priority}&sender=${sender}`;
-        if (query) {
-            url += `&q=${encodeURIComponent(query)}`;
-        }
-
-        window.location.href = url;
-    }
+function applyFilters() {
+    const priority = document.getElementById('priorityFilter').value;
+    const sender   = document.getElementById('senderFilter').value;
+    const params   = new URLSearchParams();
+    if (priority !== 'All') params.set('priority', priority);
+    if (sender   !== 'All') params.set('sender',   sender);
+    window.location.href = '?' + params.toString();
+}
 </script>
 
 {% endblock %}

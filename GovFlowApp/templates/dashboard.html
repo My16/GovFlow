@@ -5,232 +5,895 @@
 {% block content %}
 
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+<style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body, .dashboard-content {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background: #f3f6fb;
+    }
+
+    /* ── Welcome Header ── */
+    .welcome-header {
+        background: linear-gradient(135deg, #1a7a4a 0%, #2d9e63 50%, #145c38 100%);
+        border-radius: 16px;
+        padding: 32px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: white;
+        box-shadow: 0 8px 32px rgba(26,122,74, 0.2);
+        animation: slideUp .5s ease both;
+    }
+    .welcome-content h1 {
+        font-size: 28px;
+        font-weight: 800;
+        margin: 0 0 4px 0;
+        background: linear-gradient(45deg, #ffffff, #f0f8ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .welcome-subtitle {
+        font-size: 16px;
+        opacity: 0.9;
+        margin: 0;
+        font-weight: 400;
+    }
+    .welcome-actions {
+        display: flex;
+        gap: 12px;
+        flex-shrink: 0;
+    }
+    .welcome-btn {
+        background: rgba(255, 255, 255, 0.15);
+        border: 2px solid rgba(255, 255, 255, 0.25);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all .2s;
+        backdrop-filter: blur(10px);
+        font-size: 14px;
+    }
+    .welcome-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+    .welcome-btn-outline {
+        background: transparent;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+    }
+    .welcome-btn-outline:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* ── Summary Cards ── */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,.08);
+        border: 1px solid #f1f5f9;
+        text-decoration: none;
+        animation: slideUp .4s ease both;
+        transition: all .25s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: default;
+        position: relative;
+        overflow: hidden;
+    }
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--stat-color), var(--stat-color-light));
+    }
+    .stat-card.blue { --stat-color: #2563eb; --stat-color-light: #60a5fa; }
+    .stat-card.orange { --stat-color: #d97706; --stat-color-light: #fbbf24; }
+    .stat-card.green { --stat-color: #16a34a; --stat-color-light: #4ade80; }
+    .stat-card.red { --stat-color: #dc2626; --stat-color-light: #f87171; }
+    .stat-card:nth-child(2) { animation-delay: .1s; }
+    .stat-card:nth-child(3) { animation-delay: .2s; }
+    .stat-card:nth-child(4) { animation-delay: .3s; }
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px rgba(0,0,0,.12);
+    }
+
+    .stat-icon {
+        width: 52px; height: 52px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+        position: relative;
+    }
+    .stat-icon.blue   { background: rgba(37,99,235,.12);  color: #2563eb; }
+    .stat-icon.orange { background: rgba(245,158,11,.12); color: #d97706; }
+    .stat-icon.green  { background: rgba(22,163,74,.12);  color: #16a34a; }
+    .stat-icon.red    { background: rgba(239,68,68,.12);  color: #dc2626; }
+
+    .stat-info { display: flex; flex-direction: column; flex: 1; }
+    .stat-value {
+        font-size: 28px;
+        font-weight: 800;
+        color: #1a2433;
+        line-height: 1;
+        margin-bottom: 2px;
+    }
+    .stat-label {
+        font-size: 12px;
+        color: #64748b;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .stat-sub {
+        font-size: 11px;
+        color: #94a3b8;
+        font-weight: 400;
+    }
+
+    /* ── Dashboard Layout ── */
+    .dashboard-layout {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 24px;
+        align-items: start;
+    }
+    .left-col { display: flex; flex-direction: column; gap: 18px; }
+    .right-col { display: flex; flex-direction: column; gap: 18px; }
+
+    /* ── Cards ── */
+    .panel-card {
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 2px 12px rgba(0,0,0,.06);
+        border: 1px solid #eef2f7;
+        overflow: hidden;
+        animation: slideUp .4s ease .2s both;
+    }
+    .panel-card:nth-child(2) { animation-delay: .28s; }
+    .panel-card:nth-child(3) { animation-delay: .35s; }
+
+    .panel-header {
+        display: flex; align-items: center; gap: 9px;
+        padding: 14px 18px; border-bottom: 1px solid #f0f4f8;
+        font-size: 13.5px; font-weight: 700; color: #1a2433;
+    }
+    .panel-header i { font-size: 14px; }
+    .panel-header.blue   i { color: #2563eb; }
+    .panel-header.orange i { color: #d97706; }
+    .panel-header.red    i { color: #dc2626; }
+    .panel-header.teal   i { color: #0891b2; }
+    .panel-header.green  i { color: #16a34a; }
+
+    .panel-badge {
+        margin-left: auto;
+        font-size: 11px; font-weight: 700;
+        padding: 2px 9px; border-radius: 20px;
+    }
+    .badge-blue   { background: rgba(37,99,235,.1);  color: #2563eb; }
+    .badge-orange { background: rgba(245,158,11,.12); color: #d97706; }
+    .badge-red    { background: rgba(239,68,68,.12);  color: #dc2626; }
+    .badge-green  { background: rgba(22,163,74,.12);  color: #16a34a; }
+
+    /* ── Chart ── */
+    .chart-header {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 14px 18px; border-bottom: 1px solid #f0f4f8;
+        flex-wrap: wrap; gap: 10px;
+    }
+    .chart-title { font-size: 13.5px; font-weight: 700; color: #1a2433; display: flex; align-items: center; gap: 8px; }
+    .chart-title i { color: #2563eb; }
+    .chart-body { padding: 18px 18px 12px; }
+    .chart-period-btns { display: flex; gap: 4px; }
+    .period-btn {
+        padding: 5px 12px; border-radius: 7px; border: 1px solid #e0e6ed;
+        background: #fff; font-size: 11.5px; font-weight: 600;
+        font-family: 'Plus Jakarta Sans', sans-serif; color: #78909c;
+        cursor: pointer; transition: all .15s;
+    }
+    .period-btn.active { background: #2563eb; border-color: #2563eb; color: #fff; }
+    .period-btn:hover:not(.active) { background: #f0f4f8; }
+
+    /* ── Recent Documents Table ── */
+    .table-container {
+        overflow-x: auto;
+        border-radius: 0 0 14px 14px;
+    }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .data-table thead th {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        padding: 12px 16px; text-align: left;
+        font-size: 11px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.8px; color: #64748b; border-bottom: 2px solid #e2e8f0;
+        white-space: nowrap;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    .data-table tbody tr { border-bottom: 1px solid #f1f5f9; transition: all .15s ease; }
+    .data-table tbody tr:last-child { border-bottom: none; }
+    .data-table tbody tr:hover {
+        background: linear-gradient(135deg, #f8fafc 0%, #f0f4f8 100%);
+        transform: scale(1.002);
+    }
+    .data-table td { padding: 14px 16px; color: #374151; vertical-align: middle; }
+
+    .doc-title {
+        font-weight: 700;
+        font-size: 13px;
+        color: #1a2433;
+        margin-bottom: 2px;
+    }
+    .doc-desc {
+        font-size: 11px;
+        color: #6b7280;
+        margin-bottom: 2px;
+    }
+    .doc-tracking {
+        font-size: 10px;
+        color: #9ca3af;
+        font-family: 'Monaco', 'Menlo', monospace;
+        background: #f3f4f6;
+        padding: 2px 6px;
+        border-radius: 4px;
+        display: inline-block;
+    }
+
+    .office-info {
+        font-size: 12px;
+        color: #4b5563;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .office-info i {
+        color: #9ca3af;
+        font-size: 11px;
+    }
+
+    .date-info .date-main {
+        font-size: 12px;
+        font-weight: 600;
+        color: #1a2433;
+    }
+    .date-info .date-sub {
+        font-size: 10px;
+        color: #9ca3af;
+    }
+
+    /* ── Action buttons in table ── */
+    .action-buttons {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+    }
+    .action-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all .2s ease;
+        flex-shrink: 0;
+    }
+    .btn-view {
+        background: rgba(37,99,235,.1);
+        color: #2563eb;
+    }
+    .btn-view:hover {
+        background: rgba(37,99,235,.2);
+        transform: scale(1.05);
+    }
+    .btn-forward {
+        background: rgba(22,163,74,.1);
+        color: #16a34a;
+    }
+    .btn-forward:hover:not(:disabled) {
+        background: rgba(22,163,74,.2);
+        transform: scale(1.05);
+    }
+    .btn-forward:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+    .btn-qr {
+        background: rgba(139,92,246,.1);
+        color: #7c3aed;
+    }
+    .btn-qr:hover {
+        background: rgba(139,92,246,.2);
+        transform: scale(1.05);
+    }
+    .btn-delete {
+        background: rgba(239,68,68,.1);
+        color: #dc2626;
+    }
+    .btn-delete:hover {
+        background: rgba(239,68,68,.2);
+        transform: scale(1.05);
+    }
+
+    /* ── Tags / Badges ── */
+    .tag {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 3px 9px; border-radius: 20px;
+        font-size: 10.5px; font-weight: 700; white-space: nowrap;
+    }
+    .high-priority-tag  { background: rgba(239,68,68,.1);  color: #dc2626; }
+    .medium-priority-tag{ background: rgba(245,158,11,.1); color: #d97706; }
+    .low-priority-tag   { background: rgba(22,163,74,.1);  color: #16a34a; }
+
+    .pending-tag    { background: rgba(245,158,11,.1); color: #d97706; }
+    .in-transit-tag { background: rgba(59,130,246,.1); color: #2563eb; }
+    .received-tag   { background: rgba(22,163,74,.1);  color: #16a34a; }
+    .returned-tag   { background: rgba(139,92,246,.1); color: #7c3aed; }
+    .archived-tag   { background: rgba(107,114,128,.1);color: #6b7280; }
+    .completed-tag  { background: rgba(20,184,166,.1); color: #0f766e; }
+
+    /* ── Panel list ── */
+    .panel-list { padding: 6px 0; max-height: 220px; overflow-y: auto; }
+    .panel-item {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 9px 18px; font-size: 12.5px;
+        border-bottom: 1px solid #f8fafc; transition: background .15s;
+    }
+    .panel-item:last-child { border-bottom: none; }
+    .panel-item:hover { background: #f8fafc; }
+    .panel-item-name { font-weight: 600; color: #1a2433; font-size: 12.5px; }
+    .panel-item-sub  { font-size: 11px; color: #94a3b8; margin-top: 1px; }
+    .panel-item-val  {
+        font-size: 11px; font-weight: 700;
+        padding: 3px 9px; border-radius: 6px; flex-shrink: 0;
+    }
+    .val-orange { background: rgba(245,158,11,.1); color: #d97706; }
+    .val-red    { background: rgba(239,68,68,.1);  color: #dc2626; }
+    .val-blue   { background: rgba(37,99,235,.1);  color: #2563eb; }
+
+    .panel-empty { text-align: center; padding: 24px; color: #b0bec5; font-size: 12.5px; }
+    .panel-empty i { display: block; font-size: 22px; margin-bottom: 6px; color: #dde3ea; }
+
+    .panel-footer {
+        padding: 10px 18px; border-top: 1px solid #f0f4f8;
+        text-align: center;
+    }
+    .panel-footer a {
+        font-size: 12px; font-weight: 600; color: #2563eb;
+        text-decoration: none; transition: color .15s;
+    }
+    .panel-footer a:hover { color: #1d4ed8; }
+
+    /* ── Quick Actions ── */
+    .quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 16px; }
+    .quick-btn {
+        display: flex; align-items: center; gap: 10px;
+        padding: 12px 14px; border-radius: 10px; border: 1px solid #e0e6ed;
+        background: #f8fafc; font-size: 12px; font-weight: 600;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        color: #1a2433; cursor: pointer;
+        text-decoration: none; transition: all .2s ease;
+        text-align: left;
+    }
+    .quick-btn:hover {
+        background: #f0f4f8; border-color: #cdd5df;
+        transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.08);
+        color: #1a2433;
+    }
+    .quick-btn .qi {
+        width: 32px; height: 32px; border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 14px; flex-shrink: 0;
+    }
+    .qi-blue   { background: rgba(37,99,235,.12);  color: #2563eb; }
+    .qi-green  { background: rgba(22,163,74,.12);  color: #16a34a; }
+    .qi-orange { background: rgba(245,158,11,.12); color: #d97706; }
+    .qi-red    { background: rgba(239,68,68,.12);  color: #dc2626; }
+    .qi-purple { background: rgba(139,92,246,.12); color: #7c3aed; }
+    .qi-teal   { background: rgba(8,145,178,.12);  color: #0891b2; }
+
+    /* ── Enhanced Panel Items ── */
+    .panel-item-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    /* ── Search Indicator ── */
+    .search-indicator {
+        font-size: 12px;
+        color: #64748b;
+        font-weight: 500;
+        background: rgba(37,99,235,.05);
+        padding: 4px 8px;
+        border-radius: 6px;
+        border: 1px solid rgba(37,99,235,.1);
+    }
+
+    /* ── Empty state ── */
+    .empty-state { text-align: center; padding: 40px 20px; }
+    .empty-state i { font-size: 32px; margin-bottom: 12px; display: block; color: #d1d9e0; }
+    .empty-state p { font-size: 14px; color: #6b7280; margin-bottom: 16px; }
+
+    /* ── View all link ── */
+    .view-all-link {
+        font-size: 12px; font-weight: 600; color: #2563eb;
+        text-decoration: none; transition: all .15s;
+        display: flex; align-items: center; gap: 4px;
+    }
+    .view-all-link:hover {
+        color: #1d4ed8;
+        transform: translateX(2px);
+    }
+
+    /* ── Action buttons in table ── */
+    .action-btn { font-size: 11.5px !important; padding: 4px 10px !important; border-radius: 6px !important; }
+
+    /* ── Empty state ── */
+    .empty-state { text-align: center; padding: 36px 20px; }
+    .empty-state i { font-size: 30px; margin-bottom: 10px; display: block; color: #d1d9e0; }
+    .empty-state p { font-size: 13px; color: #90a4ae; }
+
+    /* ── View all link ── */
+    .view-all-link {
+        font-size: 12px; font-weight: 600; color: #2563eb;
+        text-decoration: none; transition: color .15s;
+    }
+    .view-all-link:hover { color: #1d4ed8; }
+
+    /* ── Responsive ── */
+    @media (max-width: 1100px) {
+        .stats-row { grid-template-columns: repeat(2, 1fr); }
+        .dashboard-layout { grid-template-columns: 1fr; }
+        .right-col { display: grid; grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+        .stats-row, .right-col { grid-template-columns: 1fr; }
+    }
+
+    /* ── Custom Delete Modals (matching all_documents style) ── */
+    .gf-modal-overlay {
+        display: none; position: fixed; inset: 0;
+        background: rgba(13,27,42,.55); backdrop-filter: blur(4px);
+        z-index: 2000; align-items: center; justify-content: center;
+    }
+    .gf-modal-overlay.open { display: flex; }
+    .gf-modal {
+        background: #fff; border-radius: 16px; width: 100%; max-width: 380px;
+        box-shadow: 0 20px 60px rgba(0,0,0,.2); overflow: hidden;
+        animation: slideUp .25s cubic-bezier(.34,1.56,.64,1) both;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .gf-delete-body { padding: 28px 24px 8px; text-align: center; }
+    .gf-delete-icon {
+        width: 56px; height: 56px; border-radius: 50%;
+        background: rgba(239,68,68,.10);
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 14px; font-size: 22px; color: #dc2626;
+    }
+    .gf-delete-title { font-size: 16px; font-weight: 800; color: #1a2433; margin-bottom: 6px; }
+    .gf-delete-msg   { font-size: 12.5px; color: #78909c; line-height: 1.6; }
+    .gf-delete-msg strong { color: #1a2433; }
+    .gf-modal-footer {
+        display: flex; align-items: center; justify-content: center;
+        gap: 12px; padding: 16px 24px 20px;
+    }
+    .gf-btn-cancel {
+        padding: 9px 20px; border-radius: 9px;
+        border: 1px solid #e0e6ed; background: #fff;
+        color: #64748b; font-size: 13px; font-weight: 600;
+        font-family: 'Plus Jakarta Sans', sans-serif; cursor: pointer;
+    }
+    .gf-btn-cancel:hover { background: #f0f4f8; }
+    .gf-btn-danger {
+        padding: 9px 20px; border-radius: 9px; border: none;
+        background: #dc2626; color: #fff; font-size: 13px; font-weight: 700;
+        font-family: 'Plus Jakarta Sans', sans-serif; cursor: pointer;
+        box-shadow: 0 2px 8px rgba(220,38,38,.25);
+    }
+    .gf-btn-danger:hover { background: #b91c1c; }
+</style>
 
 <div class="dashboard-content">
 
-    <div class="row summary-cards mb-4">
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="summary-card">
-                <div class="card-text">
-                    <p class="card-label">Total Documents</p>
-                    <h3 class="card-value">{{ total_documents }}</h3>
-                </div>
-                <div class="card-icon blue-bg">
-                    <i class="bi bi-file-earmark-text-fill"></i>
-                </div>
+    <!-- Welcome Header -->
+    <div class="welcome-header">
+        <div class="welcome-content">
+            <h1 class="welcome-title">Welcome back, {{ request.user.first_name|default:request.user.username }}!</h1>
+            <p class="welcome-subtitle">Here's what's happening with your documents today</p>
+        </div>
+        <div class="welcome-actions">
+            <a href="{% url 'new_document' %}" class="btn btn-primary welcome-btn">
+                <i class="bi bi-plus-circle-fill me-2"></i>Create New Document
+            </a>
+            <a href="{% url 'all_documents' %}" class="btn btn-primary welcome-btn">
+                <i class="bi bi-files me-2"></i>View All Documents
+            </a>
+        </div>
+    </div>
+
+    <!-- ── Summary Cards ── -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon blue">
+                <i class="bi bi-file-earmark-text-fill"></i>
+            </div>
+            <div class="stat-info">
+                <span class="stat-value">{{ total_documents }}</span>
+                <span class="stat-label">Total Documents</span>
+                <span class="stat-sub">All tracked records</span>
             </div>
         </div>
-
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="summary-card">
-                <div class="card-text">
-                    <p class="card-label">In Progress</p>
-                    <h3 class="card-value">{{ in_progress }}</h3>
-                </div>
-                <div class="card-icon orange-bg">
-                    <i class="bi bi-clock-fill"></i>
-                </div>
+        <div class="stat-card">
+            <div class="stat-icon orange">
+                <i class="bi bi-clock-fill"></i>
+            </div>
+            <div class="stat-info">
+                <span class="stat-value">{{ in_progress }}</span>
+                <span class="stat-label">In Progress</span>
+                <span class="stat-sub">Awaiting action</span>
             </div>
         </div>
-
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="summary-card">
-                <div class="card-text">
-                    <p class="card-label">Received</p>
-                    <h3 class="card-value">{{ received }}</h3>
-                </div>
-                <div class="card-icon green-bg">
-                    <i class="bi bi-check-circle-fill"></i>
-                </div>
+        <div class="stat-card">
+            <div class="stat-icon green">
+                <i class="bi bi-check-circle-fill"></i>
+            </div>
+            <div class="stat-info">
+                <span class="stat-value">{{ received }}</span>
+                <span class="stat-label">Received</span>
+                <span class="stat-sub">Successfully delivered</span>
             </div>
         </div>
-
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="summary-card">
-                <div class="card-text">
-                    <p class="card-label">High Priority</p>
-                    <h3 class="card-value">{{ high_priority }}</h3>
-                </div>
-                <div class="card-icon red-bg">
-                    <i class="bi bi-exclamation-triangle-fill"></i>
-                </div>
+        <div class="stat-card">
+            <div class="stat-icon red">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <div class="stat-info">
+                <span class="stat-value">{{ high_priority }}</span>
+                <span class="stat-label">High Priority</span>
+                <span class="stat-sub">Needs immediate action</span>
             </div>
         </div>
     </div>
 
+    <!-- ── Main Layout ── -->
+    <div class="dashboard-layout">
 
-    <div class="recent-documents-section">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="section-title">Recent Documents</h4>
-            {% if search_query %}
-                <p class="text-muted mb-2">
-                    Showing results for "<strong>{{ search_query }}</strong>"
-                </p>
-            {% endif %}
-            <a href="{% url 'all_documents' %}" class="view-all-link">View All →</a>
-        </div>
+        <!-- LEFT COLUMN -->
+        <div class="left-col">
 
-        <div class="row recent-documents-cards">
-            {% for doc in recent_documents %}
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="document-card">
-                    <div class="document-header">
-                        {% if doc.priority == 'High' %}
-                            <span class="tag high-priority-tag">High Priority</span>
-                        {% elif doc.priority == 'Medium' %}
-                            <span class="tag medium-priority-tag">Medium Priority</span>
-                        {% else %}
-                            <span class="tag low-priority-tag">Low Priority</span>
-                        {% endif %}
-
-                        {% if doc.status == 'Pending' %}
-                            <span class="tag pending-tag">Pending</span>
-                        {% elif doc.status == 'In Transit' %}
-                            <span class="tag in-transit-tag">In Transit</span>
-                        {% elif doc.status == 'Received' %}
-                            <span class="tag received-tag">Received</span>
-                        {% elif doc.status == 'Returned' %}
-                            <span class="tag returned-tag">Returned</span>
-                        {% elif doc.status == 'Archived' %}
-                            <span class="tag archived-tag">Archived</span>
-                        {% elif doc.status == 'Completed' %}
-                            <span class="tag completed-tag">Completed</span>
-                        {% endif %}
+            <!-- Recent Documents Table -->
+            <div class="panel-card">
+                <div class="chart-header">
+                    <div class="chart-title">
+                        <i class="bi bi-clock-history"></i>Recent Documents
                     </div>
-
-                    <h5 class="document-title">{{ doc.title }}</h5>
-                    <p class="document-description">{{ doc.description|truncatechars:80 }}</p>
-                    <div class="document-meta">
-                        <span class="meta-item"><i class="bi bi-clock"></i> Created {{ doc.created_at|date:"M d, Y h:i A" }}</span>
-                        <span class="meta-item"><i class="bi bi-geo-alt"></i> {{ doc.current_office.get_full_name }}</span>
-                    </div>
-                    <div class="document-actions-container">
-                        <div class="document-actions">
-                            <a href="{% url 'document_detail' doc.pk %}" class="btn btn-sm btn-outline-secondary action-btn">
-                                <i class="bi bi-file-earmark-text"></i> Details
-                            </a>
-                            <!-- forward button -->
-                            <!-- <button class="btn btn-sm btn-outline-primary action-btn" data-document-id="{{ doc.pk }}" data-bs-toggle="modal" data-bs-target="#forwardModal" {% if doc.current_office != request.user or doc.status == "In Transit" %} disabled{% endif %}><i class="bi bi-send-fill"></i></button> -->
-                            {% if doc.status != "Completed" %}
-                                <button class="btn btn-sm btn-outline-primary action-btn" 
-                                        data-document-id="{{ doc.pk }}" 
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#forwardModal" 
-                                        {% if doc.current_office != request.user or doc.status == "In Transit" %} disabled{% endif %}>
-                                    <i class="bi bi-send-fill"></i>
-                                </button>
-                            {% endif %}
-
-                            <!-- qr code button -->
-                            {% if doc.qr_code %}
-                            <a class="btn btn-sm btn-outline-secondary action-btn" data-bs-toggle="modal"
-                                data-bs-target="#routingSlipModal"
-                                data-document-id="{{ doc.id }}">
-                                <i class="bi bi-qr-code"></i>
-                            </a>
-                            {% endif %}
-                            <!-- Delete Button -->
-                            <!-- <button class="btn btn-sm btn-outline-danger action-btn" data-bs-toggle="modal" data-bs-target="#deleteModal{{ doc.id }}" {% if doc.current_office != request.user %} disabled{% endif %}><i class="bi bi-trash-fill"></i></button> -->
-
-                            {% if doc.sender == request.user %}
-                                <button class="btn btn-sm btn-outline-danger action-btn" 
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#deleteModal{{ doc.id }}">
-                                    <i class="bi bi-trash-fill"></i>
-                                </button>
-                            {% endif %}
-
-
-                            <!-- Delete Confirmation Modal -->
-                            <div class="modal fade" id="deleteModal{{ doc.id }}" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content">
-
-                                        <div class="modal-header bg-danger text-white">
-                                            <h5 class="modal-title">Delete Document</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                        </div>
-
-                                        <div class="modal-body">
-                                            <p>Are you sure you want to delete this document?</p>
-                                            <p class="fw-bold">{{ doc.tracking_id }} — {{ doc.title }}</p>
-                                            <p class="text-muted">This action cannot be undone.</p>
-                                        </div>
-
-                                        <div class="modal-footer">
-                                            <button class="btn btn-secondary" data-bs-dismiss="modal">
-                                                Cancel
-                                            </button>
-
-                                            <form method="POST" action="{% url 'delete_document' doc.id %}">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn btn-danger">
-                                                    Yes, Delete
-                                                </button>
-                                            </form>
-                                        </div>
-
+                    {% if search_query %}
+                        <span class="search-indicator">
+                            Results for "<strong>{{ search_query }}</strong>"
+                        </span>
+                    {% endif %}
+                    <a href="{% url 'all_documents' %}" class="view-all-link">
+                        View all <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Document</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Current Office</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for doc in recent_documents %}
+                            <tr>
+                                <td>
+                                    <div class="doc-title">{{ doc.title }}</div>
+                                    <div class="doc-desc">{{ doc.description|truncatechars:45 }}</div>
+                                    <div class="doc-tracking">{{ doc.tracking_id }}</div>
+                                </td>
+                                <td>
+                                    {% if doc.priority == 'High' %}
+                                        <span class="tag high-priority-tag">
+                                            <i class="bi bi-exclamation-circle-fill"></i>High
+                                        </span>
+                                    {% elif doc.priority == 'Medium' %}
+                                        <span class="tag medium-priority-tag">
+                                            <i class="bi bi-dash-circle-fill"></i>Medium
+                                        </span>
+                                    {% else %}
+                                        <span class="tag low-priority-tag">
+                                            <i class="bi bi-check-circle-fill"></i>Low
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if doc.status == 'Pending' %}
+                                        <span class="tag pending-tag">Pending</span>
+                                    {% elif doc.status == 'In Transit' %}
+                                        <span class="tag in-transit-tag">In Transit</span>
+                                    {% elif doc.status == 'Received' %}
+                                        <span class="tag received-tag">Received</span>
+                                    {% elif doc.status == 'Returned' %}
+                                        <span class="tag returned-tag">Returned</span>
+                                    {% elif doc.status == 'Archived' %}
+                                        <span class="tag archived-tag">Archived</span>
+                                    {% elif doc.status == 'Completed' %}
+                                        <span class="tag completed-tag">Completed</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="office-info">
+                                        <i class="bi bi-geo-alt"></i>
+                                        {{ doc.current_office.get_full_name }}
                                     </div>
-                                </div>
-                            </div>
+                                </td>
+                                <td>
+                                    <div class="date-info">
+                                        <div class="date-main">{{ doc.created_at|date:"M d, Y" }}</div>
+                                        <div class="date-sub">{{ doc.created_at|date:"h:i A" }}</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a href="{% url 'document_detail' doc.pk %}" class="action-btn btn-view" title="View Details">
+                                            <i class="bi bi-file-earmark-text"></i>
+                                        </a>
 
-                            
-                        </div>
-                    </div>
+                                        {% if doc.status != "Completed" %}
+                                        <button class="action-btn btn-forward"
+                                                data-document-id="{{ doc.pk }}"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#forwardModal"
+                                                title="Forward Document"
+                                                {% if doc.current_office != request.user or doc.status == "In Transit" %}disabled{% endif %}>
+                                            <i class="bi bi-send-fill"></i>
+                                        </button>
+                                        {% endif %}
+
+                                        {% if doc.qr_code %}
+                                        <button class="action-btn btn-qr"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#routingSlipModal"
+                                                data-document-id="{{ doc.id }}"
+                                                title="View QR Code">
+                                            <i class="bi bi-qr-code"></i>
+                                        </button>
+                                        {% endif %}
+
+                                        {% if doc.sender == request.user %}
+                                        <button class="action-btn btn-delete"
+                                                onclick="openDeleteModal('deleteModal{{ doc.id }}')"
+                                                title="Delete Document">
+                                            <i class="bi bi-trash-fill"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6">
+                                    <div class="empty-state">
+                                        <i class="bi bi-file-earmark-x"></i>
+                                        <p>No recent documents found.</p>
+                                        <!-- <a href="{% url 'new_document' %}" class="btn btn-primary btn-sm mt-2">
+                                            <i class="bi bi-plus-circle me-1"></i>Create Your First Document
+                                        </a> -->
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            {% empty %}
-                <p>No recent documents found.</p>
-            {% endfor %}
         </div>
 
-        <!-- FORWARD DOCUMENT MODAL -->
-        <div class="modal fade" id="forwardModal" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <form method="POST" action="">
-                        {% csrf_token %}
-                        
-                        <div class="modal-header bg-success text-white">
-                            <h5 class="modal-title">Forward Document</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
+        <!-- RIGHT COLUMN -->
+        <div class="right-col">
 
-                        <div class="modal-body">
-
-                            <!-- Select User/Office -->
-                            <label class="form-label">Forward To (Office/User)</label>
-                            <select name="new_office" class="form-select" required>
-                                <option value="">Select Office</option>
-
-                                {% for department, users in departments.items %}
-                                <optgroup label="{{ department }}">
-                                    {% for u in users %}
-                                    <option value="{{ u.id }}">
-                                        {{ u.get_full_name }}
-                                    </option>
-                                    {% endfor %}
-                                </optgroup>
-                                {% endfor %}
-                            </select>
-
-                            <!-- Note -->
-                            <label class="form-label mt-3">Note (Optional)</label>
-                            <textarea name="note" class="form-control" rows="3"></textarea>
-
-                        </div>
-
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Cancel</button>
-                            <button class="btn btn-outline-success">Forward</button>
-                        </div>
-                    </form>
+            <!-- Quick Actions -->
+            <div class="panel-card">
+                <div class="panel-header teal">
+                    <i class="bi bi-lightning-fill"></i>Quick Actions
                 </div>
+                <div class="quick-actions">
+                    <a class="quick-btn" href="{% url 'new_document' %}">
+                        <div class="qi qi-blue">
+                            <i class="bi bi-plus-circle-fill"></i>
+                        </div>
+                        <span>New Document</span>
+                    </a>
+                    <a class="quick-btn" href="#" data-bs-toggle="modal" data-bs-target="#forwardModal">
+                        <div class="qi qi-green">
+                            <i class="bi bi-send-fill"></i>
+                        </div>
+                        <span>Forward Doc</span>
+                    </a>
+                    <a class="quick-btn" href="{% url 'all_documents' %}?priority=High">
+                        <div class="qi qi-red">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                        </div>
+                        <span>High Priority</span>
+                    </a>
+                    <a class="quick-btn" href="{% url 'all_documents' %}?status=In+Transit">
+                        <div class="qi qi-orange">
+                            <i class="bi bi-truck"></i>
+                        </div>
+                        <span>In Transit</span>
+                    </a>
+                    <a class="quick-btn" href="{% url 'all_documents' %}?status=Pending">
+                        <div class="qi qi-purple">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                        <span>Pending</span>
+                    </a>
+                    <a class="quick-btn" href="{% url 'completed_documents' %}">
+                        <div class="qi qi-teal">
+                            <i class="bi bi-check2-all"></i>
+                        </div>
+                        <span>Completed</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- High Priority Alerts -->
+            <div class="panel-card">
+                <div class="panel-header red">
+                    <i class="bi bi-exclamation-triangle-fill"></i>High Priority
+                    <span class="panel-badge badge-red">{{ high_priority }}</span>
+                </div>
+                <div class="panel-list">
+                    {% for doc in recent_documents %}
+                        {% if doc.priority == 'High' %}
+                        <div class="panel-item">
+                            <div class="panel-item-content">
+                                <div class="panel-item-name">{{ doc.title|truncatechars:28 }}</div>
+                                <div class="panel-item-sub">{{ doc.current_office.get_full_name }}</div>
+                            </div>
+                            <span class="panel-item-val val-red">{{ doc.status }}</span>
+                        </div>
+                        {% endif %}
+                    {% empty %}
+                    {% endfor %}
+                    {% if high_priority == 0 %}
+                    <div class="panel-empty">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>No high priority documents</span>
+                    </div>
+                    {% endif %}
+                </div>
+                {% if high_priority > 0 %}
+                <div class="panel-footer">
+                    <a href="{% url 'all_documents' %}?priority=High">View all high priority →</a>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── Delete Document Modals ── -->
+    {% for doc in recent_documents %}
+    <div class="gf-modal-overlay" id="deleteModal{{ doc.id }}">
+        <div class="gf-modal">
+            <div class="gf-delete-body">
+                <div class="gf-delete-icon"><i class="bi bi-trash-fill"></i></div>
+                <div class="gf-delete-title">Delete Document</div>
+                <p class="gf-delete-msg">
+                    Are you sure you want to delete<br>
+                    <strong>{{ doc.tracking_id }} — {{ doc.title }}</strong>?<br>
+                    This action cannot be undone.
+                </p>
+            </div>
+            <div class="gf-modal-footer">
+                <button class="gf-btn-cancel" onclick="closeDeleteModal('deleteModal{{ doc.id }}')">Cancel</button>
+                <form method="POST" action="{% url 'delete_document' doc.id %}" style="margin:0;">
+                    {% csrf_token %}
+                    <button type="submit" class="gf-btn-danger">
+                        <i class="bi bi-trash-fill" style="margin-right:5px;"></i>Yes, Delete
+                    </button>
+                </form>
             </div>
         </div>
     </div>
+    {% endfor %}
+
+    <!-- ── Forward Document Modal ── -->
+    <div class="modal fade" id="forwardModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius:14px;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif;">
+                <form method="POST" action="">
+                    {% csrf_token %}
+                    <div class="modal-header" style="background:#2563eb;color:#fff;">
+                        <h5 class="modal-title" style="font-weight:700;">
+                            <i class="bi bi-send-fill me-2"></i>Forward Document
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <label class="form-label fw-semibold" style="font-size:13px;">Forward To (Office / User)</label>
+                        <select name="new_office" class="form-select" required style="font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;">
+                            <option value="">Select Office</option>
+                            {% for department, users in departments.items %}
+                            <optgroup label="{{ department }}">
+                                {% for u in users %}
+                                <option value="{{ u.id }}">{{ u.get_full_name }}</option>
+                                {% endfor %}
+                            </optgroup>
+                            {% endfor %}
+                        </select>
+                        <label class="form-label fw-semibold mt-3" style="font-size:13px;">Note <span class="text-muted fw-normal">(Optional)</span></label>
+                        <textarea name="note" class="form-control" rows="3" style="font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;"></textarea>
+                    </div>
+                    <div class="modal-footer" style="border-top:1px solid #f0f4f8;">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button class="btn btn-primary" style="background:#2563eb;border-color:#2563eb;">
+                            <i class="bi bi-send-fill me-1"></i>Forward
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 </div>
 
-<script src="{% static 'js/dashboard.js' %}"></script>
+<script>
+// Set forward modal action URL based on clicked doc
+document.querySelectorAll('[data-bs-target="#forwardModal"]').forEach(btn => {
+    btn.addEventListener('click', function () {
+        const docId = this.getAttribute('data-document-id');
+        if (docId) {
+            document.querySelector('#forwardModal form').action = `/documents/${docId}/forward/`;
+        }
+    });
+});
+
+
+
+function openDeleteModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeDeleteModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.gf-modal-overlay').forEach(function(o) {
+    o.addEventListener('click', function(e) { if (e.target === o) o.classList.remove('open'); });
+});
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape')
+        document.querySelectorAll('.gf-modal-overlay.open').forEach(function(o) { o.classList.remove('open'); });
+});
+</script>
 
 {% endblock %}
