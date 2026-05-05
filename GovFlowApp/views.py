@@ -66,7 +66,7 @@ def user_management(request):
     List all system users. Only admins can add/edit/delete;
     regular staff see the list read-only.
     """
-    search_query = request.GET.get('search', '').strip()
+    search_query = request.GET.get('q', '').strip()
 
     users = User.objects.select_related('userprofile').all().order_by(
         'first_name', 'last_name'
@@ -465,7 +465,7 @@ def all_documents(request):
     # Filters
     status_filter = request.GET.get('status', '')
     priority_filter = request.GET.get('priority', '')
-    search_query = request.GET.get('search', '').strip()
+    search_query = request.GET.get('q', '').strip()
     per_page = request.GET.get('per_page', 10)
 
     # Convert per_page to int

@@ -179,6 +179,18 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; }
 .action-btn:hover { transform: translateY(-1px); }
 .btn-view { background: rgba(37,99,235,.1); color: #2563eb; }
 .btn-view:hover { background: rgba(37,99,235,.2); color: #2563eb; }
+
+/* ── Search Indicator ── */
+.search-indicator {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 500;
+    background: rgba(37,99,235,.05);
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(37,99,235,.1);
+}
+
 .btn-qr   { background: rgba(139,92,246,.1); color: #7c3aed; }
 .btn-qr:hover { background: rgba(139,92,246,.2); }
 
@@ -266,6 +278,11 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; }
                     <i class="bi bi-check2-all"></i> Completed Documents
                 </span>
                 <span class="gf-count-badge">{{ documents.paginator.count }} total</span>
+                {% if search_query %}
+                    <span class="search-indicator">
+                        Results for "<strong>{{ search_query }}</strong>"
+                    </span>
+                {% endif %}
             </div>
         </div>
 
@@ -401,8 +418,8 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; }
             </div>
             <div class="gf-pagination-links">
                 {% if documents.has_previous %}
-                    <a class="gf-page-btn" href="?page=1&priority={{ priority_filter }}&sender={{ sender_filter }}">«</a>
-                    <a class="gf-page-btn" href="?page={{ documents.previous_page_number }}&priority={{ priority_filter }}&sender={{ sender_filter }}">‹</a>
+                    <a class="gf-page-btn" href="?page=1&priority={{ priority_filter }}&sender={{ sender_filter }}&q={{ search_query }}">«</a>
+                    <a class="gf-page-btn" href="?page={{ documents.previous_page_number }}&priority={{ priority_filter }}&sender={{ sender_filter }}&q={{ search_query }}">‹</a>
                 {% else %}
                     <span class="gf-page-btn disabled">«</span>
                     <span class="gf-page-btn disabled">‹</span>
@@ -412,13 +429,13 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; }
                     {% if documents.number == num %}
                         <span class="gf-page-btn active">{{ num }}</span>
                     {% elif num >= documents.number|add:'-2' and num <= documents.number|add:'2' %}
-                        <a class="gf-page-btn" href="?page={{ num }}&priority={{ priority_filter }}&sender={{ sender_filter }}">{{ num }}</a>
+                        <a class="gf-page-btn" href="?page={{ num }}&priority={{ priority_filter }}&sender={{ sender_filter }}&q={{ search_query }}">{{ num }}</a>
                     {% endif %}
                 {% endfor %}
 
                 {% if documents.has_next %}
-                    <a class="gf-page-btn" href="?page={{ documents.next_page_number }}&priority={{ priority_filter }}&sender={{ sender_filter }}">›</a>
-                    <a class="gf-page-btn" href="?page={{ documents.paginator.num_pages }}&priority={{ priority_filter }}&sender={{ sender_filter }}">»</a>
+                    <a class="gf-page-btn" href="?page={{ documents.next_page_number }}&priority={{ priority_filter }}&sender={{ sender_filter }}&q={{ search_query }}">›</a>
+                    <a class="gf-page-btn" href="?page={{ documents.paginator.num_pages }}&priority={{ priority_filter }}&sender={{ sender_filter }}&q={{ search_query }}">»</a>
                 {% else %}
                     <span class="gf-page-btn disabled">›</span>
                     <span class="gf-page-btn disabled">»</span>
@@ -434,9 +451,15 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; }
 function applyFilters() {
     const priority = document.getElementById('priorityFilter').value;
     const sender   = document.getElementById('senderFilter').value;
-    const params   = new URLSearchParams();
+    const params   = new URLSearchParams(window.location.search);
+    
     if (priority !== 'All') params.set('priority', priority);
-    if (sender   !== 'All') params.set('sender',   sender);
+    else params.delete('priority');
+    
+    if (sender !== 'All') params.set('sender', sender);
+    else params.delete('sender');
+    
+    params.delete('page'); // Reset pagination to first page
     window.location.href = '?' + params.toString();
 }
 </script>

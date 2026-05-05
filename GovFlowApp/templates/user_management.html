@@ -69,6 +69,18 @@
     padding: 3px 10px; border-radius: 20px;
   }
 
+  /* ── Search Indicator ── */
+  .search-indicator {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 500;
+    background: rgba(37,99,235,.05);
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(37,99,235,.1);
+    margin-left: 8px;
+  }
+
   /* Search */
   .um-search { position: relative; }
   .um-search i {
@@ -245,12 +257,17 @@
     <div class="um-toolbar-left">
       <span class="um-table-title">System Users</span>
       <span class="um-count-badge">{{ total_users }} total</span>
+      {% if search_query %}
+        <span class="search-indicator">
+          Results for "<strong>{{ search_query }}</strong>"
+        </span>
+      {% endif %}
     </div>
     <div class="um-toolbar-right">
       <form method="GET" action="">
         <div class="um-search">
           <i class="fa-solid fa-search"></i>
-          <input type="text" name="search"
+          <input type="text" name="q"
                  placeholder="Search users…"
                  value="{{ search_query }}"
                  autocomplete="off">
