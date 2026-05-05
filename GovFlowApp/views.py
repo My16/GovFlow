@@ -67,13 +67,18 @@ def user_management(request):
     regular staff see the list read-only.
     """
     search_query = request.GET.get('q', '').strip()
+    per_page = request.GET.get('per_page', '10')
+    try:
+        per_page = int(per_page)
+    except ValueError:
+        per_page = 10
 
-    users = User.objects.select_related('userprofile').all().order_by(
+    users_qs = User.objects.select_related('userprofile').all().order_by(
         'first_name', 'last_name'
     )
 
     if search_query:
-        users = users.filter(
+        users_qs = users_qs.filter(
             Q(first_name__icontains=search_query) |
             Q(last_name__icontains=search_query)  |
             Q(username__icontains=search_query)   |
@@ -82,10 +87,16 @@ def user_management(request):
             Q(userprofile__position__icontains=search_query)
         )
 
-    total_users    = users.count()
-    active_users   = users.filter(is_active=True).count()
-    inactive_users = users.filter(is_active=False).count()
-    admin_users    = users.filter(is_staff=True).count()
+    # Stats (from filtered queryset)
+    total_users    = users_qs.count()
+    active_users   = users_qs.filter(is_active=True).count()
+    inactive_users = users_qs.filter(is_active=False).count()
+    admin_users    = users_qs.filter(is_staff=True).count()
+
+    # Pagination
+    paginator = Paginator(users_qs, per_page)
+    page_number = request.GET.get('page')
+    users = paginator.get_page(page_number)
 
     for user in users:
         UserProfile.objects.get_or_create(user=user)
@@ -97,6 +108,7 @@ def user_management(request):
         'inactive_users':    inactive_users,
         'admin_users':       admin_users,
         'search_query':      search_query,
+        'per_page':          per_page,
         'department_choices': UserProfile.DEPARTMENT_CHOICES,
     }
     return render(request, 'user_management.html', context)
